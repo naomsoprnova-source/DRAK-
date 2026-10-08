@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>محلل التداول الاحترافي</title>
+<style>
+body{margin:0;background:#0b1020;color:#eef2ff;font-family:system-ui;line-height:1.7}.wrap{max-width:900px;margin:auto;padding:18px}
+.card{background:#151d32;border:1px solid #293554;border-radius:16px;padding:16px;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}@media(max-width:650px){.grid{grid-template-columns:1fr}}
+label{display:block;color:#aab5ce;font-size:13px;margin:7px 0 4px}
+input,select{width:100%;box-sizing:border-box;padding:11px;border-radius:10px;border:1px solid #33405f;background:#0e1528;color:white}
+button{padding:12px 16px;border:0;border-radius:10px;background:#5eead4;color:#06221f;font-weight:800;margin:10px 5px 0 0}
+.m{background:#0e1528;border:1px solid #293554;border-radius:12px;padding:12px}.v{font-size:20px;font-weight:800}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}@media(max-width:650px){.metrics{grid-template-columns:repeat(2,1fr)}}
+.checks{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.check{background:#0e1528;padding:9px;border-radius:9px;color:#ddd}.check input{width:auto}
+#status{padding:12px;border-radius:10px;margin-top:12px}.good{background:#073c31}.warn{background:#4b3907}.bad{background:#4a1222}
+.bar{height:10px;background:#283452;border-radius:9px;overflow:hidden}.fill{height:100%;width:0;background:#5eead4}
+small{color:#9aa6c1}
+</style></head>
+<body><main class="wrap">
+<h1>📊 محلل التداول الاحترافي</h1>
+<small>فلترة تعليمية تجمع الاتجاه والسيولة والحجم والمستويات والتأكيدات وإدارة المخاطر وR:R.</small>
+
+<div class="card"><h2>💰 الصفقة</h2><div class="grid">
+<div><label>رأس المال USDT</label><input id="cap" type="number" value="30"></div>
+<div><label>المخاطرة %</label><input id="rp" type="number" value="1" step=".1"></div>
+<div><label>الدخول</label><input id="en" type="number" step="any"></div>
+<div><label>وقف الخسارة</label><input id="st" type="number" step="any"></div>
+<div><label>الهدف</label><input id="tg" type="number" step="any"></div>
+</div></div>
+
+<div class="card"><h2>🧠 قراءة السوق</h2><div class="grid">
+<div><label>الاتجاه</label><select id="tr"><option value="2">صاعد</option><option value="0">عرضي</option><option value="-2">هابط</option></select></div>
+<div><label>السيولة</label><select id="fl"><option value="2">شراء قوي</option><option value="1">شراء متوسط</option><option value="0">توازن</option><option value="-1">بيع متوسط</option><option value="-2">بيع قوي</option></select></div>
+<div><label>الحجم</label><select id="vo"><option value="2">مرتفع</option><option value="1">متوسط</option><option value="0">ضعيف</option></select></div>
+<div><label>المستوى</label><select id="lv"><option value="2">دعم/مقاومة قوية</option><option value="1">متوسط</option><option value="0">غير واضح</option></select></div>
+</div></div>
+
+<div class="card"><h2>✅ التأكيدات</h2><div class="checks">
+<label class="check"><input id="bo" type="checkbox"> كسر واضح</label>
+<label class="check"><input id="re" type="checkbox"> إعادة اختبار</label>
+<label class="check"><input id="ca" type="checkbox"> شمعة تأكيد</label>
+<label class="check"><input id="big" type="checkbox"> تداولات كبيرة</label>
+<label class="check"><input id="mk" type="checkbox"> السوق العام متوافق</label>
+<label class="check"><input id="nc" type="checkbox" checked> لا أطارد السعر</label>
+</div><button onclick="calc()">حلّل الصفقة</button><button onclick="example()">مثال</button></div>
+
+<div class="card" id="out" style="display:none"><h2>📈 النتيجة</h2><div class="metrics">
+<div class="m">المخاطرة<div class="v" id="ra"></div></div>
+<div class="m">R:R<div class="v" id="rr"></div></div>
+<div class="m">حجم الصفقة<div class="v" id="qty"></div></div>
+<div class="m">الربح المحتمل<div class="v" id="pr"></div></div>
+<div class="m">الخسارة المحتملة<div class="v" id="lo"></div></div>
+<div class="m">وقف %<div class="v" id="sp"></div></div>
+</div><div id="status"></div><h3>⭐ جودة الفرصة: <span id="score"></span>/100</h3><div class="bar"><div class="fill" id="fill"></div></div><p id="grade"></p><ul id="why"></ul>
+<small>الأداة لا تتنبأ بالسوق ولا تضمن الربح. النتيجة فلترة تعليمية حسب البيانات المدخلة.</small>
+</div></main>
+
+<script>
+const $=id=>document.getElementById(id), n=id=>Number($(id).value)||0, f=x=>Number.isFinite(x)?x.toFixed(4).replace(/\.?0+$/,'—'): '—';
+function calc(){
+ let c=n('cap'),r=n('rp'),e=n('en'),s=n('st'),t=n('tg');
+ if(c<=0||r<=0||e<=0||s<=0||t<=0||s===e||t===e){alert('أدخل رأس المال والدخول والوقف والهدف بشكل صحيح');return}
+ let long=t>e,sd=Math.abs(e-s),td=Math.abs(t-e),risk=c*r/100,qty=risk/sd,rr=td/sd,profit=qty*td;
+ $('ra').textContent=f(risk)+' USDT';$('rr').textContent='1:'+f(rr);$('qty').textContent=f(qty);
+ $('pr').textContent=f(profit)+' USDT';$('lo').textContent=f(risk)+' USDT';$('sp').textContent=(sd/e*100).toFixed(2)+'%';
+ let score=0,w=[],tr=n('tr'),fl=n('fl');
+ if((long&&tr==2)||(!long&&tr==-2)){score+=20;w.push('الاتجاه متوافق مع الصفقة')}else if(tr==0){score+=8;w.push('السوق عرضي')}else w.push('الاتجاه يعاكس الصفقة');
+ if((long&&fl>0)||(!long&&fl<0)){score+=18;w.push('السيولة تدعم الاتجاه')}else if(fl==0){score+=7;w.push('السيولة متوازنة')}else w.push('السيولة تعاكس الاتجاه');
+ score+=n('vo')==2?15:n('vo')==1?8:0; w.push(n('vo')==2?'الحجم قوي':'الحجم ليس قويًا');
+ score+=n('lv')==2?15:n('lv')==1?8:0; w.push(n('lv')==2?'المستوى السعري قوي':'المستوى السعري يحتاج تأكيد');
+ ['bo','re','ca','big','mk','nc'].forEach((id,i)=>{if($(id).checked){score+=id==='nc'?5:id==='mk'?4:3;w.push('✓ تأكيد: '+$(id).parentElement.textContent.trim())}});
+ if(rr>=2){score+=10;w.push('R:R ممتاز')}else if(rr>=1.5){score+=6;w.push('R:R مقبول')}else w.push('R:R أقل من 1:1.5');
+ if(r<=2){score+=5;w.push('المخاطرة ضمن 2%')}else if(r<=5){score+=2;w.push('المخاطرة أعلى من المفضل')}else w.push('المخاطرة مرتفعة جدًا');
+ score=Math.min(100,Math.round(score));$('score').textContent=score;$('fill').style.width=score+'%';
+ let grade=rr<1.5||r>5?'مرفوضة ❌':score>=80?'ممتازة ⭐':score>=65?'جيدة ✅':score>=50?'مقبولة ⚠️':'ضعيفة ❌';
+ $('grade').textContent=grade;$('why').innerHTML=w.map(x=>'<li>'+x+'</li>').join('');
+ let st=$('status');st.className=score>=65&&rr>=1.5&&r<=2?'good':(rr<1.5||r>5?'bad':'warn');
+ st.innerHTML='<b>'+ (rr<1.5?'لا تدخل: R:R ضعيف':r>5?'لا تدخل: مخاطرة مرتفعة':score>=80?'فرصة قوية، مع الالتزام بالوقف':score>=65?'فرصة جيدة، انتظر اكتمال التأكيد':'انتظر، الفرصة غير مكتملة')+'</b>';
+ $('out').style.display='block';$('out').scrollIntoView({behavior:'smooth'});
+}
+function example(){$('cap').value=30;$('rp').value=1;$('en').value=100;$('st').value=98;$('tg').value=104;['bo','re','ca','big','mk','nc'].forEach(x=>$(x).checked=true);calc()}
+</script></body></html>
