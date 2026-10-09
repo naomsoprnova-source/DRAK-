@@ -125,7 +125,7 @@ function calc(c){
  const n=c.length,cl=c.map(x=>x.c),e9=ema(cl,9),e21=ema(cl,21),e50=ema(cl,50),rsi=rsiW(cl),tr=Array(n).fill(null),plus=Array(n).fill(0),minus=Array(n).fill(0);
  for(let i=0;i<n;i++){tr[i]=i?Math.max(c[i].h-c[i].l,Math.abs(c[i].h-c[i-1].c),Math.abs(c[i].l-c[i-1].c)):c[i].h-c[i].l;if(i){const u=c[i].h-c[i-1].h,d=c[i-1].l-c[i].l;plus[i]=u>d&&u>0?u:0;minus[i]=d>u&&d>0?d:0}}
  const atr=Array(n).fill(null),pdm=Array(n).fill(null),mdm=Array(n).fill(null),pdi=Array(n).fill(null),mdi=Array(n).fill(null),dx=Array(n).fill(null),adx=Array(n).fill(null),p=14;
- if(n>p){let at=mean(tr.slice(0,p)),pp=plus.slice(1,p+1).reduce((a,b)=>a+b,0),mm=minus.slice(1,p+1).reduce((a,b)=>a+b,0);atr[p-1]=at;pdm[p-1]=pp;mdm[p-1]=mm;for(let i=p;i<n;i++){at=(at*(p-1)+tr[i])/p;pp=pp-pp/p+plus[i];mm=mm-mm/p+minus[i];atr[i]=at;pdm[i]=pp;mdm[i]=mm;const den=at*p;pdi[i]=den?100*pp/den:0;mdi[i]=den?100*mm/den:0;dx[i]=(pdi[i]+mdi[i])?100*Math.abs(pdi[i]-mdi[i])/(pdi[i]+mdi[i]):0}
+ if(n>p){let at=mean(tr.slice(0,p)),pp=plus.slice(0,p).reduce((a,b)=>a+b,0),mm=minus.slice(0,p).reduce((a,b)=>a+b,0);atr[p-1]=at;pdm[p-1]=pp;mdm[p-1]=mm;for(let i=p;i<n;i++){at=(at*(p-1)+tr[i])/p;pp=pp-pp/p+plus[i];mm=mm-mm/p+minus[i];atr[i]=at;pdm[i]=pp;mdm[i]=mm;const den=at*p;pdi[i]=den?100*pp/den:0;mdi[i]=den?100*mm/den:0;dx[i]=(pdi[i]+mdi[i])?100*Math.abs(pdi[i]-mdi[i])/(pdi[i]+mdi[i]):0}
  const first=2*p-1;if(n>first){let seed=[];for(let i=p;i<=first;i++)if(Number.isFinite(dx[i]))seed.push(dx[i]);if(seed.length){let av=mean(seed);adx[first]=av;for(let i=first+1;i<n;i++){av=(av*(p-1)+dx[i])/p;adx[i]=av}}}}
  const m12=ema(cl,12),m26=ema(cl,26),macd=m12.map((x,i)=>x-m26[i]),sig=ema(macd,9),hist=macd.map((x,i)=>x-sig[i]);
  const obv=Array(n).fill(0);for(let i=1;i<n;i++)obv[i]=obv[i-1]+(cl[i]>cl[i-1]?c[i].v:cl[i]<cl[i-1]?-c[i].v:0);
@@ -143,7 +143,6 @@ function backtest(c,m,startIndex,capital,riskPct,fee,slip){const rate=(fee+slip)
  if(pos){const bar=c[i];let exit=null,why='';if(bar.o<=pos.stop){exit=bar.o;why='فجوة أسفل الوقف'}else{const hitStop=bar.l<=pos.stop,hitTarget=bar.h>=pos.target;if(hitStop){exit=pos.stop;why='وقف';}else if(hitTarget){exit=pos.target;why='هدف';}}
  if(exit!==null){const exitEff=exit*(1-rate),pnl=pos.qty*(exitEff-pos.entryEff),before=eq;eq+=pnl;peak=Math.max(peak,eq);dd=Math.max(dd,(peak-eq)/(peak||1));trades.push({pnl,retPct:100*pnl/before,equityAfter:eq,entry:pos.entry,exit,why});pos=null}
  }
- if(pos&&i<n){const worstEq=eq+pos.qty*(c[i].l*(1-rate)-pos.entryEff);peak=Math.max(peak,eq);dd=Math.max(dd,(peak-worstEq)/(peak||1))}
  if(!pos&&i<n-1){const s=signalAt(c,m,i);if(s.d===1&&Number.isFinite(m.atr[i])&&m.atr[i]>0){const entry=c[i+1].o,entryEff=entry*(1+rate),stop=entry-1.5*m.atr[i],target=entry+3*m.atr[i],unitRisk=entryEff-stop*(1-rate),budget=eq*riskPct/100,qty=Math.min(eq/entryEff,budget/Math.max(unitRisk,entry*.000001));if(Number.isFinite(qty)&&qty>0)pos={entry,entryEff,stop,target,qty,entryIndex:i+1}}}
  }
  if(pos){const exit=c[n-1].c,exitEff=exit*(1-rate),pnl=pos.qty*(exitEff-pos.entryEff),before=eq;eq+=pnl;peak=Math.max(peak,eq);dd=Math.max(dd,(peak-eq)/(peak||1));trades.push({pnl,retPct:100*pnl/before,equityAfter:eq,entry:pos.entry,exit,why:'إغلاق نهاية الفترة'});pos=null}
