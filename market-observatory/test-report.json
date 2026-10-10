@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "checks": 5,
+  "position": {
+    "rawQuantity": 0.0003603918819486522,
+    "roundedQuantity": 0.00036,
+    "notional": 29.92248,
+    "estimatedNetStopLoss": 0.14805578582724754,
+    "netTargets": [
+      -0.031479094172748814,
+      0.026809251654503177,
+      0.08509759748174991
+    ]
+  },
+  "syntheticBacktest": {
+    "trades": 15,
+    "totalReturnPct": -3.399826390877725,
+    "maxDrawdownPct": 3.399826390877721
+  },
+  "note": "Synthetic candles validate calculation integrity only; they are not market performance evidence."
+}
