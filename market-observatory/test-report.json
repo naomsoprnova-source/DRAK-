@@ -1,21 +1,37 @@
 {
-  "status": "PASS",
-  "checks": 5,
-  "position": {
-    "rawQuantity": 0.0003603918819486522,
-    "roundedQuantity": 0.00036,
-    "notional": 29.92248,
-    "estimatedNetStopLoss": 0.14805578582724754,
-    "netTargets": [
-      -0.031479094172748814,
-      0.026809251654503177,
-      0.08509759748174991
-    ]
+  "reviewDate": "2026-10-11",
+  "status": "PASS_WITH_LIMITATIONS",
+  "checks": {
+    "engineAssertions": {
+      "passed": 13,
+      "failed": 0,
+      "run": "Node.js local test"
+    },
+    "mockedUiIntegration": {
+      "passed": 4,
+      "failed": 0,
+      "marketData": "synthetic fixture"
+    },
+    "syntaxChecks": {
+      "engineJs": "PASS",
+      "appJs": "PASS"
+    },
+    "liveBinanceConnection": "NOT_TESTED",
+    "realBrowserAndAndroid": "NOT_TESTED"
   },
-  "syntheticBacktest": {
-    "trades": 15,
-    "totalReturnPct": -3.399826390877725,
-    "maxDrawdownPct": 3.399826390877721
-  },
-  "note": "Synthetic candles validate calculation integrity only; they are not market performance evidence."
+  "fixes": [
+    "Use Wilder smoothing for RSI and ATR.",
+    "Require 50 valid candles and use the same SMA50 value in trend classification.",
+    "Reject malformed OHLC candles and non-positive prices.",
+    "Validate capital, risk, fee, and candle-count settings.",
+    "Add a 15-second network timeout, clearer fetch errors, and clear stale results after a failed refresh.",
+    "Cap estimated order value by available capital including estimated entry fee; risk sizing also includes approximate entry and stop fees.",
+    "Label the stop estimate as long-only."
+  ],
+  "limitations": [
+    "Network data retrieval and CORS were not tested against live Binance from a real browser or the user's device.",
+    "Mocked and synthetic data do not prove strategy profitability.",
+    "Position sizing does not enforce exchange lot sizes, tick size, minimum notional, slippage, spread, rounding, or account-specific fee tiers.",
+    "No full historical backtest on real market data was run."
+  ]
 }
