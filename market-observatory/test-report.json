@@ -8,7 +8,7 @@
       "run": "Node.js local test"
     },
     "mockedUiIntegration": {
-      "passed": 4,
+      "passed": 5,
       "failed": 0,
       "marketData": "synthetic fixture"
     },
