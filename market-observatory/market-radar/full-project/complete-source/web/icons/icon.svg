@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="مرصد العملات">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#173449"/>
+      <stop offset="1" stop-color="#0b1020"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#46cc9f"/>
+      <stop offset="1" stop-color="#8bf0c8"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="122" fill="#09101d"/>
+  <rect x="24" y="24" width="464" height="464" rx="108" fill="url(#bg)" stroke="#3b6070" stroke-width="4"/>
+  <path d="M143 317v-68m0 130v-14M236 267v-78m0 161v-15M329 229v-73m0 151v-10" fill="none" stroke="#70dfbb" stroke-width="11" stroke-linecap="round" opacity=".82"/>
+  <rect x="117" y="249" width="52" height="70" rx="12" fill="#4bd3a6"/>
+  <rect x="210" y="189" width="52" height="101" rx="12" fill="#7fe7bf"/>
+  <rect x="303" y="174" width="52" height="77" rx="12" fill="#51d5a9"/>
+  <path d="m119 360 93-53 82 16 99-111" fill="none" stroke="url(#line)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="m355 212 39-4-2 39" fill="none" stroke="#94f2ce" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

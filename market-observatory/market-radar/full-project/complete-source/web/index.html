@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://data-api.binance.vision https://api.binance.com wss://stream.binance.com:9443 wss://stream.binance.com; worker-src 'self'; manifest-src 'self'">
+  <meta name="theme-color" content="#0b1020">
+  <meta name="application-name" content="مرصد العملات">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <meta name="description" content="مرصد تعليمي لتحليل أسعار العملات الرقمية العامة مع مؤشرات فنية واختبار تاريخي مبسط.">
+  <title>مرصد العملات | تحليل تعليمي للسوق</title>
+  <link rel="stylesheet" href="./pwa.css">
+  <link rel="stylesheet" href="./app.css">
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="مرصد العملات - الصفحة الرئيسية">
+        <span class="brand-mark" aria-hidden="true">⌁</span>
+        <span class="brand-name">مرصد العملات<span class="brand-sub">تحليل فني تعليمي</span></span>
+      </a>
+      <div class="top-actions">
+        <button class="install-button" id="install-app" type="button" aria-label="تثبيت مرصد العملات">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 16v4h14v-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="install-full" id="install-full">تثبيت التطبيق</span><span class="install-short" id="install-short" aria-hidden="true">تثبيت</span>
+        </button>
+        <span class="top-pill">بيانات سوق عامة · بلا مفاتيح حساب</span>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="page-title">
+        <div>
+          <div class="eyebrow">MARKET OBSERVATORY&nbsp; / &nbsp;01</div>
+          <h1 id="page-title">اقرأ السوق بهدوء.</h1>
+          <p>محرك حساب فني محلي يجمع الاتجاه والزخم والحجم والتذبذب عبر مؤشرات مستقلة، ويفحص الزوج على عدة أطر زمنية. لا تخزين لبياناتك ولا تنفيذ صفقات ولا تنبؤات مضمونة.</p>
+        </div>
+        <div class="hero-note">منهجية شفافة · نتائج قابلة للمراجعة</div>
+      </section>
+
+      <div class="layout">
+        <div class="main-column">
+          <section class="panel" aria-labelledby="settings-title">
+            <div class="panel-head">
+              <div><div class="section-kicker">إعداد التحليل</div><h2 class="panel-title" id="settings-title">السوق والفترة وإدارة المخاطر</h2><p class="panel-desc">تُجلب الأسعار العامة مباشرة من واجهة Binance للبيانات.</p></div>
+            </div>
+            <div class="form-grid">
+              <div class="field"><label for="symbol">زوج التداول (USDT)</label><input id="symbol" value="BTCUSDT" list="symbol-options" inputmode="text" autocomplete="off" spellcheck="false" maxlength="20" aria-autocomplete="list" aria-describedby="symbol-hint symbol-list-status"><datalist id="symbol-options"></datalist><span class="field-hint" id="symbol-hint">ابحث أو اختر أي زوج Binance Spot نشط مقوّم بـUSDT.</span><span class="field-hint" id="symbol-list-status" role="status" aria-live="polite">جار تحديث قائمة الأزواج…</span></div>
+              <div class="field"><label for="interval">الإطار الزمني</label><select id="interval"><option value="1m">دقيقة</option><option value="5m">5 دقائق</option><option value="15m">15 دقيقة</option><option value="30m">30 دقيقة</option><option value="1h">ساعة</option><option value="4h" selected>4 ساعات</option><option value="1d">يوم</option><option value="1w">أسبوع</option></select><span class="field-hint">الإطار الأساسي: 100 شمعة مغلقة على الأقل؛ لا يتغير شرطه عند اختيار 1w.</span></div>
+              <div class="field"><label for="limit">عدد الشموع</label><input id="limit" type="number" value="500" min="100" max="1000" step="50" inputmode="numeric"><span class="field-hint">من 100 إلى 1,000 شمعة.</span></div>
+              <div class="field"><label for="capital">رأس المال التقديري (USDT)</label><input id="capital" type="number" value="30" min="1" max="100000000" step="1" inputmode="decimal"><span class="field-hint">يُطبق على الاختبار وحجم المركز.</span></div>
+              <div class="field"><label for="risk">المخاطرة لكل صفقة (%)</label><input id="risk" type="number" value="1" min="0.1" max="2" step="0.1" inputmode="decimal"><span class="field-hint">النطاق المتاح: 0.1% إلى 2%.</span></div>
+              <div class="field"><label for="fee">رسوم كل جهة (%)</label><input id="fee" type="number" value="0.1" min="0" max="1" step="0.01" inputmode="decimal"><span class="field-hint">تُحسب عند الدخول والخروج؛ عدّلها حسب حسابك.</span></div>
+              <div class="field"><label for="slippage">انزلاق كل جهة (%)</label><input id="slippage" type="number" value="0.05" min="0" max="1" step="0.01" inputmode="decimal"><span class="field-hint">افتراض قابل للتعديل، لا قياس للفارق أو السيولة؛ قد لا يلائم الأزواج ضعيفة السيولة.</span></div>
+            </div>
+            <div class="actions"><button class="primary" id="analyze" type="button">جلب البيانات وتحليلها <span aria-hidden="true">←</span></button><span class="field-hint">لا تُرسل بيانات شخصية أو مفاتيح API.</span></div>
+            <p class="status" id="status" role="status" aria-live="polite">جاهز للتحليل. اضغط الزر لجلب أحدث الشموع المكتملة.</p>
+          </section>
+
+          <section class="panel signal-card" id="signal-card" aria-labelledby="signal-title">
+            <div class="panel-head"><div><div class="section-kicker">ملخص الإشارة</div><h2 class="panel-title" id="signal-title">قراءة الاتجاه والزخم</h2></div><span class="section-kicker" id="signal-symbol">بانتظار البيانات</span></div>
+            <div class="signal-main"><span class="signal-icon" id="signal-icon" aria-hidden="true">—</span><div><div class="signal-label">محرك توافق خوارزمي شفاف</div><div class="signal-value" id="signal">لم يُحلل السوق بعد</div><div class="signal-detail" id="signal-detail">سيظهر ملخص مبني على آخر شمعة مغلقة.</div></div></div>
+            <div class="signal-separation" aria-live="polite">
+              <div class="signal-split-item"><span class="signal-split-label">اتجاه EMA · بوابة منفصلة</span><b id="signal-ema-state">—</b><span id="signal-ema-note">EMA 9 / 21 / 50</span></div>
+              <div class="signal-split-item"><span class="signal-split-label">الأصوات المستقلة · من 5</span><b id="signal-vote-count">—</b><span id="signal-vote-note">RSI · MACD · SuperTrend · OBV · الحجم</span></div>
+              <div class="signal-split-item"><span class="signal-split-label">مرشح قوة · بوابة عبور</span><b id="signal-strength-state">—</b><span id="signal-strength-note">ADX ≥ 18 مطلوب للإشارة</span></div>
+            </div>
+            <p class="signal-foot" id="signal-foot">درجة التوافق ليست احتمال ربح؛ الحسابات محلية على الشموع ولا تُخزّنها.</p>
+          </section>
+
+          <section class="panel snapshot-card" id="summary-card" aria-labelledby="summary-title">
+            <div class="panel-head">
+              <div><div class="section-kicker">بطاقة تحليل موجزة</div><h2 class="panel-title" id="summary-title">السعر والمستويات التعليمية</h2><p class="panel-desc">ملخص بصري للبيانات والمؤشرات؛ تعليمي فقط، لا يمثل توصية ولا يصدر أوامر تداول.</p></div>
+              <span class="snapshot-badge neutral" id="summary-signal">بانتظار التحليل</span>
+            </div>
+            <div class="snapshot-meta" id="summary-meta">اختر زوجًا وشغّل التحليل لعرض البطاقة.</div>
+            <div class="snapshot-market-grid" aria-label="السعر وإحصاءات آخر 24 ساعة وحجم المركز التقديري">
+              <div class="snapshot-stat snapshot-stat-price"><span>السعر الحالي</span><b id="summary-price">—</b><small id="summary-price-time">بانتظار البيانات</small></div>
+              <div class="snapshot-stat"><span>افتتاح / إغلاق 24 ساعة</span><b id="summary-open">—</b><small id="summary-close">إغلاق 24h: —</small></div>
+              <div class="snapshot-stat"><span>التغير خلال 24 ساعة</span><b id="summary-change">—</b><small>نافذة متحركة من Binance</small></div>
+              <div class="snapshot-stat"><span>أعلى سعر · 24h</span><b id="summary-high">—</b><small>USDT</small></div>
+              <div class="snapshot-stat"><span>أدنى سعر · 24h</span><b id="summary-low">—</b><small>USDT</small></div>
+              <div class="snapshot-stat"><span>حجم التداول · الأصل الأساسي</span><b id="summary-volume">—</b><small id="summary-quote-volume">الحجم المقابل: — USDT</small></div>
+              <div class="snapshot-stat"><span>حجم المركز التقديري</span><b id="summary-position-size">—</b><small id="summary-position-detail">من إعداد المخاطرة الحالي؛ تقديري فقط.</small></div>
+            </div>
+            <div class="snapshot-level-grid">
+              <div class="snapshot-level"><span>السعر المرجعي · آخر إغلاق</span><b id="summary-reference-price">—</b><small>أساس الوقف والأهداف القائمة في التحليل</small></div>
+              <div class="snapshot-level snapshot-stop"><span>وقف مرجعي · 1.5 ATR</span><b id="summary-stop">—</b><small>مستوى توضيحي، وليس أمر وقف</small></div>
+            </div>
+            <div class="snapshot-table-wrap" role="region" aria-label="الأهداف التعليمية ونسب المخاطرة إلى العائد" tabindex="0">
+              <table class="snapshot-table">
+                <thead><tr><th>الهدف</th><th>السعر · USDT</th><th>الحركة الاتجاهية الإجمالية</th><th>R:R</th></tr></thead>
+                <tbody id="summary-targets"><tr><td colspan="4">لا توجد نتيجة بعد.</td></tr></tbody>
+              </table>
+            </div>
+            <div class="snapshot-reason"><b>سبب القراءة</b><p id="summary-rationale">ستظهر خلاصة مبنية على نتيجة المحرك بعد اكتمال التحليل.</p></div>
+            <p class="snapshot-foot" id="summary-note">المستويات المعروضة مرجعية تعليمية محسوبة من إغلاق آخر شمعة مغلقة. لا تمثل أوامر تداول، ولا تُنفَّذ آليًا. وقف 1.5 ATR وهدف 2R هما الإعدادان الوحيدان المسجّلان للاختبار التاريخي؛ ما بعدهما عرضٌ فني فقط.</p>
+          </section>
+
+          <section class="panel" aria-labelledby="scan-title">
+            <div class="panel-head"><div><div class="section-kicker">فحص متعدد الأطر · الزوج نفسه</div><h2 class="panel-title" id="scan-title">اتجاهات السوق حسب الفترة</h2><p class="panel-desc">إشارات مستقلة محسوبة من بيانات كل إطار؛ لا تعني اتفاقها ضمانًا.</p></div></div>
+            <div class="tf-grid" id="tf-grid" aria-live="polite">
+              <div class="tf-card"><div class="tf-head"><span>15 دقيقة</span><span>15m</span></div><b class="tf-value" id="tf-15m-signal">بانتظار البيانات</b><span class="tf-score" id="tf-15m-score">—</span><span class="tf-strength" id="tf-15m-strength">مرشح قوة: —</span></div>
+              <div class="tf-card"><div class="tf-head"><span>ساعة</span><span>1h</span></div><b class="tf-value" id="tf-1h-signal">بانتظار البيانات</b><span class="tf-score" id="tf-1h-score">—</span><span class="tf-strength" id="tf-1h-strength">مرشح قوة: —</span></div>
+              <div class="tf-card"><div class="tf-head"><span>4 ساعات</span><span>4h</span></div><b class="tf-value" id="tf-4h-signal">بانتظار البيانات</b><span class="tf-score" id="tf-4h-score">—</span><span class="tf-strength" id="tf-4h-strength">مرشح قوة: —</span></div>
+              <div class="tf-card"><div class="tf-head"><span>يوم</span><span>1d</span></div><b class="tf-value" id="tf-1d-signal">بانتظار البيانات</b><span class="tf-score" id="tf-1d-score">—</span><span class="tf-strength" id="tf-1d-strength">مرشح قوة: —</span></div>
+              <div class="tf-card"><div class="tf-head"><span>أسبوع</span><span>1w</span></div><b class="tf-value" id="tf-1w-signal">بانتظار البيانات</b><span class="tf-score" id="tf-1w-score">—</span><span class="tf-strength" id="tf-1w-strength">مرشح قوة: —</span></div>
+            </div>
+            <p class="panel-desc">حد الفحص متعدد الأطر: 100 شمعة مغلقة للأطر غير الأسبوعية، و50 شمعة لـ1w؛ هذا لا يغيّر حد الإطار الأساسي البالغ 100.</p>
+          </section>
+
+          <section class="panel" aria-labelledby="chart-title">
+            <div class="panel-head"><div><div class="section-kicker">حركة السعر · بث عام</div><h2 class="panel-title" id="chart-title">مخطط شموع تفاعلي</h2><p class="panel-desc" id="chart-subtitle">يظهر الرسم بعد تحميل بيانات كافية.</p></div></div>
+            <div class="chart-toolbar">
+              <div class="chart-tool-row" role="group" aria-label="نطاق المخطط والتكبير">
+                <div class="chart-range-tools" role="group" aria-label="عدد الشموع الظاهرة">
+                  <button class="chart-tool" id="chart-range-60" type="button" aria-pressed="false">60</button>
+                  <button class="chart-tool" id="chart-range-120" type="button" aria-pressed="true">120</button>
+                  <button class="chart-tool" id="chart-range-250" type="button" aria-pressed="false">250</button>
+                  <button class="chart-tool" id="chart-range-500" type="button" aria-pressed="false">500</button>
+                  <button class="chart-tool" id="chart-range-all" type="button" aria-pressed="false">الكل</button>
+                </div>
+                <span class="chart-visible-count" id="chart-visible-count">— شمعة</span>
+                <div class="chart-zoom-tools" role="group" aria-label="أدوات التكبير">
+                  <button class="chart-tool chart-zoom" id="chart-zoom-in" type="button" aria-label="تكبير المخطط">+</button>
+                  <button class="chart-tool chart-zoom" id="chart-zoom-out" type="button" aria-label="تصغير المخطط">−</button>
+                  <button class="chart-tool chart-latest" id="chart-latest" type="button">الأحدث</button>
+                </div>
+              </div>
+              <div class="chart-overlay-tools" role="group" aria-label="المؤشرات الظاهرة على المخطط">
+                <button class="chart-chip" id="chart-toggle-ema9" type="button" aria-pressed="false">EMA 9</button>
+                <button class="chart-chip is-active" id="chart-toggle-ema21" type="button" aria-pressed="true">EMA 21</button>
+                <button class="chart-chip" id="chart-toggle-ema50" type="button" aria-pressed="false">EMA 50</button>
+                <button class="chart-chip is-active" id="chart-toggle-bollinger" type="button" aria-pressed="true">Bollinger</button>
+                <button class="chart-chip is-active" id="chart-toggle-supertrend" type="button" aria-pressed="true">SuperTrend</button>
+                <button class="chart-chip is-active" id="chart-toggle-volume" type="button" aria-pressed="true">الحجم</button>
+              </div>
+            </div>
+            <div class="chart-readout" aria-live="off">
+              <div class="chart-live-price-wrap"><span class="chart-live-label">السعر</span><b id="chart-live-price">—</b><span id="chart-live-change" class="chart-live-change neutral">—</span></div>
+              <span class="chart-stream-status" id="chart-stream-status" role="status" aria-live="polite">بانتظار تحليل السوق.</span>
+              <span class="chart-candle-info" id="chart-candle-info">حرّك المؤشر أو المس شمعة لقراءة OHLCV.</span>
+            </div>
+            <div class="chart-wrap" id="chart" tabindex="0" role="region" aria-label="مخطط تفاعلي؛ اسحب للتحريك، واستخدم عجلة الفأرة أو القرص للتكبير"><div class="chart-state chart-empty">لا توجد بيانات مرسومة بعد.<br>ابدأ التحليل لعرض حركة السعر.</div></div>
+            <div class="chart-legend"><span class="legend-item"><i class="legend-mark"></i>شموع صاعدة / هابطة</span><span class="legend-item"><i class="legend-mark ema"></i>متوسطات EMA</span><span class="chart-note">اسحب للتحريك · عجلة/قرص للتكبير · حي عبر Binance</span></div>
+            <section class="visible-benchmark" aria-labelledby="visible-benchmark-title" aria-live="polite">
+              <div><div class="section-kicker">مرجع عرضي · بلا اختبار</div><h3 id="visible-benchmark-title">Buy &amp; Hold الحالي · الشموع المرئية فقط</h3><p id="visible-benchmark-detail">يتبع نطاق التكبير والتحريك في الرسم؛ هذه معاينة وليست المرجع الرسمي، الذي يتطلب تشغيل البحث بعد تحميل الـartifact المعتمد محليًا.</p></div>
+              <b id="visible-benchmark-return">—</b>
+            </section>
+          </section>
+
+          <section class="panel" aria-labelledby="metrics-title">
+            <div class="panel-head"><div><div class="section-kicker">لوحة المؤشرات</div><h2 class="panel-title" id="metrics-title">المستويات الحالية</h2><p class="panel-desc">تُحسب من آخر شمعة مغلقة لتقليل أثر تحديث السعر داخل الفترة.</p></div></div>
+            <div class="metrics">
+              <div class="metric"><span class="metric-label">آخر سعر إغلاق</span><b class="metric-value" id="price">—</b><span class="metric-sub" id="price-time">بانتظار البيانات</span></div>
+              <div class="metric"><span class="metric-label">الاتجاه / EMA 9–21–50</span><b class="metric-value small" id="trend">—</b><span class="metric-sub" id="ema-values">—</span></div>
+              <div class="metric"><span class="metric-label">RSI · 14</span><b class="metric-value" id="rsi">—</b><span class="metric-sub" id="rsi-note">تنعيم Wilder</span></div>
+              <div class="metric"><span class="metric-label">ATR · 14</span><b class="metric-value" id="atr">—</b><span class="metric-sub">مقياس التذبذب السعري</span></div>
+              <div class="metric"><span class="metric-label">MACD · 12/26/9</span><b class="metric-value" id="macd">—</b><span class="metric-sub" id="macd-note">خط المؤشر / خط الإشارة / المدرج</span></div>
+              <div class="metric"><span class="metric-label">الحجم / متوسط 20</span><b class="metric-value" id="volume-ratio">—</b><span class="metric-sub" id="volume-note">تأكيد نشاط لا اتجاه مستقل</span></div>
+              <div class="metric"><span class="metric-label">وقف مرجعي · 1.5 ATR</span><b class="metric-value" id="stop">—</b><span class="metric-sub">مستوى حسابي لا أمر تداول</span></div>
+              <div class="metric"><span class="metric-label">الأهداف · 1R / 2R / 3R</span><b class="metric-value small" id="targets">—</b><span class="metric-sub">مستويات مرجعية؛ الاختبار يخرج عند 2R</span></div>
+              <div class="metric"><span class="metric-label">حجم اسمي تقديري</span><b class="metric-value" id="quantity">—</b><span class="metric-sub" id="quantity-note">يعتمد على رأس المال وحد المخاطرة.</span></div>
+              <div class="metric"><span class="metric-label">ميزانية المخاطرة</span><b class="metric-value" id="risk-budget">—</b><span class="metric-sub">النسبة المدخلة من رأس المال.</span></div>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="indicators-title">
+            <div class="panel-head"><div><div class="section-kicker">مؤشرات إضافية</div><h2 class="panel-title" id="indicators-title">تأكيدات فنية مستقلة</h2><p class="panel-desc">قيم آخر شمعة مكتملة؛ المؤشرات سياقية وليست إشارات منفردة.</p></div></div>
+            <div class="indicator-grid">
+              <div class="indicator-tile"><b id="obv-state">—</b><span id="obv-detail">OBV · اتجاه تدفق الحجم</span></div>
+              <div class="indicator-tile"><b id="stochastic">—</b><span id="stochastic-detail">Stochastic %K / %D · 14,3</span></div>
+              <div class="indicator-tile"><b id="bollinger">—</b><span id="bollinger-detail">Bollinger · 20,2σ · وسط / علوي / سفلي</span></div>
+              <div class="indicator-tile"><b id="sar">—</b><span id="sar-detail">Parabolic SAR · 0.02 / 0.2</span></div>
+              <div class="indicator-tile"><b id="supertrend">—</b><span id="supertrend-detail">SuperTrend · ATR 10 × 3</span></div>
+              <div class="indicator-tile"><b id="adx">—</b><span id="adx-detail">ADX / DI · Wilder 14</span></div>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="historical-fetch-title">
+            <div class="panel-head"><div><div class="section-kicker">اكتساب تاريخي · متوقف</div><h2 class="panel-title" id="historical-fetch-title">بيانات BTCUSDT التاريخية المسجلة</h2><p class="panel-desc">مسار منفصل عن جلب التحليل الحي وعن Backtest وwalk-forward؛ النطاق المسجل ينتهي عند 2026-05-15T00:00:00Z.</p></div></div>
+            <div class="actions historical-fetch-actions"><button class="secondary historical-fetch-button" id="fetch-historical" type="button" disabled aria-disabled="true">الجلب التاريخي — معطّل</button><span class="field-hint">يتطلب الجلب التاريخي إذنًا منفصلًا؛ لن يبدأ أي طلب في الحالة الحالية.</span></div>
+            <p class="status historical-fetch-status" id="historical-fetch-status" role="status" aria-live="polite">الجلب التاريخي معطّل ويتطلب إذن جلب مستقلًا؛ لم يُفتح مخزن البيانات ولم يُرسل أي طلب.</p>
+          </section>
+
+          <section class="panel" aria-labelledby="backtest-title">
+            <div class="panel-head"><div><div class="section-kicker">بحث استراتيجي · يتطلب الـartifact المعتمد</div><h2 class="panel-title" id="backtest-title">بوابة EMA مقابل الأصوات المستقلة</h2><p class="panel-desc">عتبتا A/B منفصلتان عن شرط الإشارة الحية: <strong>A: EMA صاعد فقط + 3/5 أصوات صاعدة</strong>؛ <strong>B: EMA صاعد أو مختلط + 3/5 أصوات صاعدة</strong> دون اشتراط البوابة الصاعدة. كلاهما شراء فوري فقط ويشترط ADX ≥ 18؛ لا تُفتح صفقات بيع.</p><p class="panel-desc">المعادلة عند حياد الصوتين الآخرين: A مع EMA +2 وثلاثة أصوات صاعدة = 5/7؛ B مع EMA محايد = 3/7، أو 5/7 إذا عزز EMA الصاعد الدرجة. الدرجة الفعلية دائمًا EMA (±2) + مجموع الأصوات الموقعة.</p><p class="panel-desc">A لا تقبل EMA الهابط حتى لو وافقته ثلاثة أصوات، وB يستبعد EMA الهابط أيضًا؛ هذا المرشح البحثي لا يغيّر منطق العرض الحي المتماثل الاتجاه.</p></div></div>
+            <p class="bt-explain research-pause" id="research-status" role="status">التوقيع مسجل. سيُتحقق محليًا من الـartifact المعتمد عند فتح الصفحة؛ لا يبدأ البحث تلقائيًا. الحجز النهائي [2026-05-15T00:00:00Z, 2026-09-28T12:00:00Z) مغلق وغير مستخدم.</p>
+            <div class="actions research-actions"><button class="secondary" id="run-research" type="button" disabled aria-disabled="true">تشغيل البحث: مقارنة A/B وwalk-forward</button><button class="secondary artifact-load-button" id="load-approved-artifact" type="button">إعادة تحميل محلي</button><span class="field-hint">يتاح البحث بعد نجاح التحميل المحلي؛ التشغيل يدوي فقط.</span></div>
+            <div class="comparison-scroll" role="region" aria-label="مقارنة الاستراتيجيتين" tabindex="0">
+              <table class="comparison-table">
+                <thead><tr><th>الاستراتيجية</th><th>الصفقات</th><th>الفوز</th><th>العائد</th><th>متوسط الربح<br>USDT</th><th>متوسط الخسارة<br>USDT</th><th>أطول سلسلة خسائر</th><th>عامل الربح</th></tr></thead>
+                <tbody>
+                  <tr><th scope="row">A · بوابة EMA</th><td id="ab-ema-trades">—</td><td id="ab-ema-win">—</td><td id="ab-ema-return">—</td><td id="ab-ema-avg-win">—</td><td id="ab-ema-avg-loss">—</td><td id="ab-ema-streak">—</td><td id="ab-ema-pf">—</td></tr>
+                  <tr><th scope="row">B · أصوات مستقلة</th><td id="ab-vote-trades">—</td><td id="ab-vote-win">—</td><td id="ab-vote-return">—</td><td id="ab-vote-avg-win">—</td><td id="ab-vote-avg-loss">—</td><td id="ab-vote-streak">—</td><td id="ab-vote-pf">—</td></tr>
+                  <tr><th scope="row">Buy &amp; Hold · مرجع رسمي</th><td colspan="2">شراء واحتفاظ، لا صفقات استراتيجية</td><td id="ab-benchmark-return">—</td><td colspan="4" id="ab-benchmark-detail">ينتظر تشغيل البحث بعد تحميل الـartifact المعتمد محليًا؛ معاينة الشموع المرئية ليست بديلًا.</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="time-distribution-grid">
+              <section class="time-distribution" aria-labelledby="time-ema-title"><h3 id="time-ema-title">توزيع أوقات الدخول · A</h3><div class="hour-chart" id="time-ema-hours" aria-label="توزيع الصفقات حسب ساعة UTC">لا توجد نتائج</div><div class="weekday-chart" id="time-ema-weekdays" aria-label="توزيع الصفقات حسب يوم الأسبوع UTC"></div></section>
+              <section class="time-distribution" aria-labelledby="time-vote-title"><h3 id="time-vote-title">توزيع أوقات الدخول · B</h3><div class="hour-chart" id="time-vote-hours" aria-label="توزيع الصفقات حسب ساعة UTC">لا توجد نتائج</div><div class="weekday-chart" id="time-vote-weekdays" aria-label="توزيع الصفقات حسب يوم الأسبوع UTC"></div></section>
+            </div>
+            <div class="walkforward-wrap" role="region" aria-label="فترات walk-forward المتتابعة" tabindex="0">
+              <h3 class="subsection-title">Walk-forward · فترات زمنية متتابعة</h3>
+              <p class="panel-desc">أربع نوافذ تقويمية UTC متصلة بعد التطوير/الإحماء المسجل: [2025-05-15T00:00:00Z, 2025-08-15T00:00:00Z)، [2025-08-15T00:00:00Z, 2025-11-15T00:00:00Z)، [2025-11-15T00:00:00Z, 2026-02-15T00:00:00Z)، [2026-02-15T00:00:00Z, 2026-05-15T00:00:00Z). الحجز النهائي [2026-05-15T00:00:00Z, 2026-09-28T12:00:00Z) مستبعد.</p>
+              <table class="comparison-table walkforward-table"><thead><tr><th>الفترة</th><th>النطاق الزمني</th><th>A · الصفقات / العائد</th><th>B · الصفقات / العائد</th><th>Buy &amp; Hold · العائد</th></tr></thead><tbody id="wf-results"><tr><td colspan="5">النتائج متوقفة لحين مراجعة البروتوكول.</td></tr></tbody></table>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="report-title">
+            <div class="panel-head"><div><div class="section-kicker">ملخص قابل للمشاركة</div><h2 class="panel-title" id="report-title">تقرير التحليل</h2><p class="panel-desc">نص واضح يمكنك نسخه إلى أداتك التحليلية المفضلة.</p></div></div>
+            <pre class="report-box" id="report" aria-live="polite">لا يوجد تقرير بعد. شغّل التحليل لإنشائه.</pre>
+            <div class="report-actions"><button class="secondary" id="copy" type="button" disabled>نسخ التقرير</button><span class="report-hint" id="copy-status" aria-live="polite">لا يتصل التقرير بأي نموذج أو حساب خارجي.</span></div>
+          </section>
+        </div>
+
+        <aside class="side-column" aria-label="شرح المنهجية والتنبيهات">
+          <section class="panel side-card">
+            <div class="panel-head"><div><div class="section-kicker">طريقة القراءة</div><h2 class="panel-title">قواعد معلنة</h2></div></div>
+            <ol class="guide-list">
+              <li class="guide-item"><span class="guide-num">01</span><span class="guide-copy"><b>الاتجاه</b><span>توافق EMA 9/21/50 يمنح نقطتين؛ الترتيب والموضع مطلوبان.</span></span></li>
+              <li class="guide-item"><span class="guide-num">02</span><span class="guide-copy"><b>الأصوات المستقلة</b><span>RSI وMACD وSuperTrend وOBV والحجم؛ صوت الحجم +1 فقط عندما يتجاوز الحجم متوسط20، وإلا −1؛ و0 للبيانات غير المتاحة فقط.</span></span></li>
+              <li class="guide-item"><span class="guide-num">03</span><span class="guide-copy"><b>الإشارة الحية</b><span>EMA (±2) + الأصوات الخمسة = 7؛ يلزم اتجاه EMA ودرجة مطلقة ≥5/7. ADX≥18 مرشح قوة لا صوت.</span></span></li>
+              <li class="guide-item"><span class="guide-num">04</span><span class="guide-copy"><b>مقارنة A/B</b><span>عتبتها منفصلة: A بوابة EMA و3/5 أصوات؛ B ثلاثة من خمسة بلا بوابة. ATR 14 يحدد وقف 1.5 ATR.</span></span></li>
+            </ol>
+          </section>
+          <section class="panel side-card">
+            <div class="panel-head"><div><div class="section-kicker">معادلة الحجم</div><h2 class="panel-title">تقدير لا تنفيذ</h2></div></div>
+            <div class="formula">risk = equity × risk%<br>qty = min(risk ÷ stop-loss-with-costs,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;equity ÷ entry-notional)<br>stop-distance = 1.5 × ATR(14)</div>
+            <p class="panel-desc panel-note">تقدير شراء فوري لأزواج USDT؛ لا يراعي حجم الخطوة أو الحد الأدنى لدى المنصة، وقد تتجاوز الفجوات ميزانية المخاطرة.</p>
+          </section>
+          <section class="panel side-card caveat">
+            <div class="panel-head"><div><div class="section-kicker">حدود الاستخدام</div><h2 class="panel-title">اقرأ قبل الاعتماد</h2></div></div>
+            <p>هذه أداة تعليمية، وليست نصيحة مالية أو إشارة موثوقة للربح. البيع المحتمل لا يعني إمكانية البيع على المكشوف في السوق الفوري.</p>
+            <p>الخوارزمية حتمية وشفافة وليست نموذجًا يتعلم من البيانات: درجة التوافق هي EMA (±2) زائد الأصوات المستقلة الخمسة. صوت الحجم +1 إذا تجاوز الحجم الفعلي متوسط20، وإلا −1 (والتعادل أيضًا −1)؛ 0 للبيانات غير الصالحة/غير المتاحة فقط. ADX مرشح قوة لا صوت؛ لا تمثل الدرجة احتمال ربح.</p>
+            <p>الاختبار فوري شراء فقط، يطبق رأس المال والمخاطرة المدخلين، ويغلق المركز المفتوح عند نهاية الفترة. الرسوم والانزلاق لكل جهة افتراضان قابلان للتعديل؛ التراجع يشمل تقديرًا بالقيم داخل الشمعة. الفجوات والتنفيذ والسيولة الحقيقية لا يمكن تمثيلها بدقة OHLC.</p>
+            <p>اختبارات A/B وwalk-forward تنتظر تحميل الـartifact المعتمد محليًا، ولن تبدأ تلقائيًا. نافذة التطوير/الإحماء [2024-11-15T00:00:00Z, 2025-05-15T00:00:00Z)؛ والحجز النهائي [2026-05-15T00:00:00Z, 2026-09-28T12:00:00Z) لا يُفتح ولا يُقرأ. معاينة الرسم ليست بديلًا لمرجع Buy &amp; Hold الرسمي؛ وكل نتيجة مستقبلية لا تثبت أفضلية أو ربحًا.</p>
+            <p>بيانات السوق تأتي من Binance وقد لا تتوفر في بعض الشبكات. لا تُدخل مفاتيح API أو بيانات دخول، ولا ينفّذ التطبيق صفقات.</p>
+          </section>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="footer"><span><strong>مرصد العملات</strong> — واجهة تحليل فني تعليمية، لا تنفّذ تداولاً ولا تخزّن إعداداتك.</span><span>يعمل الغلاف دون اتصال بعد التثبيت؛ جلب الأسعار يتطلب الإنترنت. المصدر: واجهة بيانات Binance العامة.</span></footer>
+    <dialog class="install-dialog" id="install-dialog" aria-labelledby="install-dialog-title">
+      <div class="section-kicker">تطبيق ويب · Android</div>
+      <h2 id="install-dialog-title">أضف مرصد العملات إلى جهازك</h2>
+      <p>في Chrome على Android:</p>
+      <ol><li>افتح قائمة المتصفح ⋮.</li><li>اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».</li><li>أكد الإضافة؛ سيظهر المرصد كأيقونة مستقلة.</li></ol>
+      <button class="secondary" id="close-install" type="button">حسنًا</button>
+      <div class="install-note">يمكن فتح واجهة التطبيق دون اتصال بعد زيارتها مرة؛ الأسعار والتحليل يتطلبان الاتصال.</div>
+    </dialog>
+  </div>
+
+  <script src="./engine.js" defer></script>
+  <script src="./chart.js" defer></script>
+  <script src="./app.js" defer></script>
+</body>
+</html>

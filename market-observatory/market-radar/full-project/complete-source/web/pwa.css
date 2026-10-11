@@ -1,0 +1,14 @@
+.top-actions{display:flex;align-items:center;gap:9px}
+.install-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:0 12px;border:1px solid rgba(88,224,178,.3);border-radius:10px;background:rgba(88,224,178,.09);color:var(--accent);font-size:11px;font-weight:750;white-space:nowrap;transition:background .15s,border-color .15s}
+.install-button:hover{background:rgba(88,224,178,.15);border-color:rgba(88,224,178,.55)}
+.install-button:disabled{opacity:.7;cursor:default}
+.install-short{display:none}
+.install-dialog{width:min(440px,calc(100% - 30px));max-width:440px;margin:auto;padding:23px;border:1px solid #365069;border-radius:18px;background:#101b2c;color:#eef4ff;box-shadow:0 24px 80px rgba(0,0,0,.45)}
+.install-dialog::backdrop{background:rgba(3,8,16,.76);backdrop-filter:blur(3px)}
+.install-dialog h2{margin:5px 0 9px;font-size:20px}
+.install-dialog p{color:#b8c8dc;font-size:13px;line-height:1.8;margin:0 0 11px}
+.install-dialog ol{padding-inline-start:23px;margin:0 0 18px;color:#dce7f4;font-size:13px;line-height:1.9}
+.install-dialog .secondary{width:100%}
+.install-note{color:#8da1ba;font-size:11px;margin-top:12px}
+@media(max-width:600px){.topbar{align-items:center}.topbar .top-pill{display:none}.top-actions{gap:0}.install-button{min-height:40px;padding:0 11px}}
+@media(max-width:440px){.install-full{display:none}.install-short{display:inline}.install-button{min-height:38px}}

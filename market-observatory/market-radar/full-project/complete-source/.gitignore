@@ -1,0 +1,10 @@
+android/.gradle/
+android/local.properties
+android/**/build/
+android/.idea/
+*.apk
+*.aab
+.DS_Store
+
+# Internal drafts are intentionally excluded from publication.
+review-drafts/
