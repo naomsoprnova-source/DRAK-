@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101923"><title>مرصد العملات</title>
+<style>
+:root{color-scheme:dark;--bg:#101923;--card:#182633;--line:#2b3b49;--text:#eef5fa;--muted:#a9bbc9;--accent:#55d6be;--red:#ff7777}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.65}
+main{max-width:1000px;margin:auto;padding:18px}header{padding:16px 0 22px}h1{margin:0;font-size:1.8rem}header p,.muted{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}label{display:block;color:var(--muted);font-size:.92rem;margin-bottom:5px}input,select,button{width:100%;padding:11px;border:1px solid var(--line);border-radius:9px;background:#101923;color:var(--text);font:inherit}button{background:var(--accent);color:#08211d;font-weight:750;border:0;cursor:pointer;margin-top:12px}button:disabled{opacity:.6}.metric{font-size:1.35rem;font-weight:750;overflow-wrap:anywhere}.good{color:var(--accent)}.bad{color:var(--red)}pre{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--muted)}table{width:100%;border-collapse:collapse}td,th{text-align:right;padding:8px;border-bottom:1px solid var(--line)}footer{font-size:.85rem;color:var(--muted);padding:14px 0}
+</style>
+</head>
+<body><main>
+<header><h1>⌁ مرصد العملات</h1><p>تحليل فني تعليمي لبيانات السوق العامة — لا ينفذ صفقات ولا يضمن الربح.</p></header>
+<section class="card"><h2>إعدادات السوق</h2><div class="grid">
+<div><label for="symbol">زوج التداول</label><input id="symbol" value="BTCUSDT" maxlength="20" autocomplete="off"></div>
+<div><label for="interval">الإطار الزمني</label><select id="interval"><option>15m</option><option>1h</option><option selected>4h</option><option>1d</option></select></div>
+<div><label for="limit">عدد الشموع (100–500)</label><input id="limit" type="number" min="100" max="500" value="300"></div>
+<div><label for="capital">رأس المال (USDT)</label><input id="capital" type="number" min="1" step="0.01" value="30"></div>
+<div><label for="risk">المخاطرة من رأس المال (%)</label><input id="risk" type="number" min="0.1" max="5" step="0.1" value="1"></div>
+<div><label for="fee">رسوم كل جهة (%)</label><input id="fee" type="number" min="0" max="2" step="0.01" value="0.1"></div>
+</div><button id="run">جلب البيانات وتحليلها</button><p id="status" role="status" class="muted">جاهز للتحليل.</p></section>
+<section class="grid">
+<div class="card"><label>السعر الأخير</label><div id="price" class="metric">—</div></div>
+<div class="card"><label>الاتجاه</label><div id="trend" class="metric">—</div></div>
+<div class="card"><label>مؤشر القوة النسبية RSI</label><div id="rsi" class="metric">—</div></div>
+<div class="card"><label>تغيّر آخر شمعة مغلقة</label><div id="change" class="metric">—</div></div>
+</section>
+<section class="card"><h2>ملخص الإشارات</h2><div id="summary" class="muted">اجلب البيانات لعرض النتيجة.</div><table><thead><tr><th>المؤشر</th><th>القيمة</th><th>القراءة</th></tr></thead><tbody id="indicators"></tbody></table></section>
+<section class="card"><h2>حساب المخاطرة (تقديري)</h2><div class="grid">
+<div><label>وقف افتراضي لصفقة شراء (2 × ATR)</label><div id="stop" class="metric">—</div></div>
+<div><label>قيمة المخاطرة القصوى</label><div id="riskCash" class="metric">—</div></div>
+<div><label>كمية تقديرية ضمن حد رأس المال</label><div id="qty" class="metric">—</div></div>
+<div><label>قيمة المركز التقريبية</label><div id="notional" class="metric">—</div></div>
+</div><p class="muted">الحساب لا يتحقق من الحد الأدنى للطلب أو دقة الكمية أو السيولة والانزلاق. لا تعتبر الكمية توصية شراء.</p></section>
+<footer>مصدر البيانات: واجهة Binance العامة. لا تدخل مفاتيح حسابك. قد يتعذر الجلب بسبب الاتصال أو قيود الخدمة. تحقّق من الأرقام بنفسك قبل اتخاذ أي قرار.</footer>
+</main>
+<script src="./engine.js"></script><script src="./app.js"></script>
+</body></html>
