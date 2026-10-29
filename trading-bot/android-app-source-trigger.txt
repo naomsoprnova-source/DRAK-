@@ -1,1 +1,1 @@
-DRAK Android 0.1.0 source bundle uploaded in twelve verified chunks. Run updated source expansion and debug APK build workflow.
+DRAK Android 0.1.0 source is committed. Rebuild the debug APK from committed source.
