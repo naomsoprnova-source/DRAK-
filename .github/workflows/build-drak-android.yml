@@ -36,12 +36,14 @@ jobs:
           base64 --decode /tmp/drak-source.b64 > /tmp/drak-source.zip
           mkdir -p /tmp/drak-source
           unzip -q /tmp/drak-source.zip -d /tmp/drak-source
+          test -f /tmp/drak-source/DRAK_Android_App_v0.1.0/app/build.gradle.kts
           mkdir -p trading-bot/android-app
           cp -a /tmp/drak-source/DRAK_Android_App_v0.1.0/. trading-bot/android-app/
           rm -f trading-bot/android-app-source.zip.b64.part*
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A trading-bot/android-app trading-bot/android-app-source.zip.b64.part*
+          git add -A trading-bot/android-app
+          git add -u trading-bot
           if ! git diff --cached --quiet; then
             git commit -m "Add DRAK Android application source"
             git push
