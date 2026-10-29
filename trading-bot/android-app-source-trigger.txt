@@ -1,1 +1,1 @@
-DRAK Android 0.1.0 source bundle uploaded in twelve verified base64 chunks. Trigger extraction and debug APK build through GitHub Actions.
+DRAK Android 0.1.0 source bundle uploaded in twelve verified chunks. Run updated source expansion and debug APK build workflow.
