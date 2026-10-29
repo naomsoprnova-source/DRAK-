@@ -21,12 +21,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat trading-bot/android-app-source.zip.b64.part1 \
-              trading-bot/android-app-source.zip.b64.part2 \
-              trading-bot/android-app-source.zip.b64.part3 \
-              trading-bot/android-app-source.zip.b64.part4 \
-              trading-bot/android-app-source.zip.b64.part5 \
-              trading-bot/android-app-source.zip.b64.part6 > /tmp/drak-source.b64
+          cat trading-bot/android-app-source.zip.b64.part01 \
+              trading-bot/android-app-source.zip.b64.part02 \
+              trading-bot/android-app-source.zip.b64.part03 \
+              trading-bot/android-app-source.zip.b64.part04 \
+              trading-bot/android-app-source.zip.b64.part05 \
+              trading-bot/android-app-source.zip.b64.part06 \
+              trading-bot/android-app-source.zip.b64.part07 \
+              trading-bot/android-app-source.zip.b64.part08 \
+              trading-bot/android-app-source.zip.b64.part09 \
+              trading-bot/android-app-source.zip.b64.part10 \
+              trading-bot/android-app-source.zip.b64.part11 \
+              trading-bot/android-app-source.zip.b64.part12 > /tmp/drak-source.b64
           base64 --decode /tmp/drak-source.b64 > /tmp/drak-source.zip
           mkdir -p /tmp/drak-source
           unzip -q /tmp/drak-source.zip -d /tmp/drak-source
