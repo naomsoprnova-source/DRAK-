@@ -1,0 +1,62 @@
+name: Build DRAK Android APK
+
+on:
+  push:
+    paths:
+      - 'trading-bot/android-app-source-trigger.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  unpack-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Expand Android source bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat trading-bot/android-app-source.zip.b64.part1 \
+              trading-bot/android-app-source.zip.b64.part2 \
+              trading-bot/android-app-source.zip.b64.part3 \
+              trading-bot/android-app-source.zip.b64.part4 \
+              trading-bot/android-app-source.zip.b64.part5 \
+              trading-bot/android-app-source.zip.b64.part6 > /tmp/drak-source.b64
+          base64 --decode /tmp/drak-source.b64 > /tmp/drak-source.zip
+          mkdir -p /tmp/drak-source
+          unzip -q /tmp/drak-source.zip -d /tmp/drak-source
+          mkdir -p trading-bot/android-app
+          cp -a /tmp/drak-source/DRAK_Android_App_v0.1.0/. trading-bot/android-app/
+          rm -f trading-bot/android-app-source.zip.b64.part*
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A trading-bot/android-app trading-bot/android-app-source.zip.b64.part*
+          if ! git diff --cached --quiet; then
+            git commit -m "Add DRAK Android application source"
+            git push
+          fi
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+          cache-provider: basic
+      - name: Build debug APK
+        working-directory: trading-bot/android-app
+        run: gradle assembleDebug
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: DRAK-Android-debug
+          path: trading-bot/android-app/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
