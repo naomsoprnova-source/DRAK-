@@ -1,1 +1,1 @@
-DRAK Android 0.1.0 source is committed. Rebuild the debug APK from committed source.
+DRAK Android source build retry: use Google Maven Central mirror fallback.
