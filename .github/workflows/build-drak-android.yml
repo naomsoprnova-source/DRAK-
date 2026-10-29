@@ -17,36 +17,40 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
-      - name: Expand Android source bundle
+      - name: Expand Android source bundle if needed
         shell: bash
         run: |
           set -euo pipefail
-          cat trading-bot/android-app-source.zip.b64.part01 \
-              trading-bot/android-app-source.zip.b64.part02 \
-              trading-bot/android-app-source.zip.b64.part03 \
-              trading-bot/android-app-source.zip.b64.part04 \
-              trading-bot/android-app-source.zip.b64.part05 \
-              trading-bot/android-app-source.zip.b64.part06 \
-              trading-bot/android-app-source.zip.b64.part07 \
-              trading-bot/android-app-source.zip.b64.part08 \
-              trading-bot/android-app-source.zip.b64.part09 \
-              trading-bot/android-app-source.zip.b64.part10 \
-              trading-bot/android-app-source.zip.b64.part11 \
-              trading-bot/android-app-source.zip.b64.part12 > /tmp/drak-source.b64
-          base64 --decode /tmp/drak-source.b64 > /tmp/drak-source.zip
-          mkdir -p /tmp/drak-source
-          unzip -q /tmp/drak-source.zip -d /tmp/drak-source
-          test -f /tmp/drak-source/DRAK_Android_App_v0.1.0/app/build.gradle.kts
-          mkdir -p trading-bot/android-app
-          cp -a /tmp/drak-source/DRAK_Android_App_v0.1.0/. trading-bot/android-app/
-          rm -f trading-bot/android-app-source.zip.b64.part*
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A trading-bot/android-app
-          git add -u trading-bot
-          if ! git diff --cached --quiet; then
-            git commit -m "Add DRAK Android application source"
-            git push
+          if [ -f trading-bot/android-app/app/build.gradle.kts ]; then
+            echo "Android source is already present; reusing it."
+          else
+            cat trading-bot/android-app-source.zip.b64.part01 \
+                trading-bot/android-app-source.zip.b64.part02 \
+                trading-bot/android-app-source.zip.b64.part03 \
+                trading-bot/android-app-source.zip.b64.part04 \
+                trading-bot/android-app-source.zip.b64.part05 \
+                trading-bot/android-app-source.zip.b64.part06 \
+                trading-bot/android-app-source.zip.b64.part07 \
+                trading-bot/android-app-source.zip.b64.part08 \
+                trading-bot/android-app-source.zip.b64.part09 \
+                trading-bot/android-app-source.zip.b64.part10 \
+                trading-bot/android-app-source.zip.b64.part11 \
+                trading-bot/android-app-source.zip.b64.part12 > /tmp/drak-source.b64
+            base64 --decode /tmp/drak-source.b64 > /tmp/drak-source.zip
+            mkdir -p /tmp/drak-source
+            unzip -q /tmp/drak-source.zip -d /tmp/drak-source
+            test -f /tmp/drak-source/DRAK_Android_App_v0.1.0/app/build.gradle.kts
+            mkdir -p trading-bot/android-app
+            cp -a /tmp/drak-source/DRAK_Android_App_v0.1.0/. trading-bot/android-app/
+            rm -f trading-bot/android-app-source.zip.b64.part*
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A trading-bot/android-app
+            git add -u trading-bot
+            if ! git diff --cached --quiet; then
+              git commit -m "Add DRAK Android application source"
+              git push
+            fi
           fi
       - name: Set up Java 17
         uses: actions/setup-java@v4
