@@ -128,3 +128,14 @@ def test_fetch_klines_rejects_wrong_interval_close_time(monkeypatch):
     monkeypatch.setattr(api.requests, "get", fake_get)
     with pytest.raises(api.MarketDataError, match="candle duration"):
         api.fetch_spot_klines("BTCUSDT", 0, api.INTERVAL_MS["15m"] - 1)
+
+
+def test_fetch_klines_rejects_open_time_not_aligned_to_interval(monkeypatch):
+    row = _kline(1, 100)
+
+    def fake_get(_url, **_kwargs):
+        return _response(200, [row])
+
+    monkeypatch.setattr(api.requests, "get", fake_get)
+    with pytest.raises(api.MarketDataError, match="open time"):
+        api.fetch_spot_klines("BTCUSDT", 0, api.INTERVAL_MS["15m"])

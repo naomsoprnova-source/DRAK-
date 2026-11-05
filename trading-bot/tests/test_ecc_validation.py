@@ -150,3 +150,14 @@ def test_market_data_rejects_unsafe_symbol_before_network(monkeypatch):
 
 def test_cli_normalizes_valid_symbol_to_uppercase():
     assert _args(["backtest", "--symbol", "btcusdt"]).symbol == "BTCUSDT"
+
+
+def test_csv_rejects_15m_open_time_not_aligned_to_utc_boundary(tmp_path):
+    path = tmp_path / "shifted-grid.csv"
+    path.write_text(
+        "open_time_ms,open,high,low,close,volume,close_time_ms\n"
+        "1,100,101,99,100,10,900000\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="15m open time"):
+        read_candles_csv(path)
