@@ -12,7 +12,16 @@ from pathlib import Path
 
 import requests
 
-from .api import PUBLIC_BASE_URL, MarketDataError, fetch_min_notional, fetch_spot_klines, read_candles_csv, write_candles_csv
+from .api import (
+    PUBLIC_BASE_URL,
+    MarketDataError,
+    fetch_min_notional,
+    fetch_spot_klines,
+    read_candles_csv,
+    validate_public_base_url,
+    validate_symbol,
+    write_candles_csv,
+)
 from .backtest import backtest_range
 from .config import StrategyConfig
 from .models import Candle, iso_utc
@@ -26,12 +35,17 @@ def _args(argv: list[str] | None = None) -> argparse.Namespace:
         description="اختبار تاريخي ورقي لبيانات Binance Spot العامة؛ لا يرسل أوامر تداول."
     )
     parser.add_argument("backtest", nargs="?", choices=("backtest",), default="backtest")
-    parser.add_argument("--symbol", default="BTCUSDT", help="زوج Spot، الافتراضي BTCUSDT")
+    parser.add_argument("--symbol", type=validate_symbol, default="BTCUSDT", help="زوج Spot، الافتراضي BTCUSDT")
     parser.add_argument("--days", type=int, default=90, help="فترة القياس، الافتراضي 90 يومًا")
     parser.add_argument("--data-csv", help="قراءة شموع 15m محفوظة بدل الاتصال بالشبكة")
     parser.add_argument("--save-data", help="حفظ الشموع الخام في CSV بعد جلبها")
     parser.add_argument("--report-dir", default="reports", help="مجلد تقارير JSON وMarkdown")
-    parser.add_argument("--api-base-url", default=PUBLIC_BASE_URL, help="نقطة Binance العامة، لا تستخدم مفاتيح API")
+    parser.add_argument(
+        "--api-base-url",
+        type=validate_public_base_url,
+        default=PUBLIC_BASE_URL,
+        help="مضيف Binance العام الرسمي فقط؛ لا تستخدم مفاتيح API",
+    )
     parser.add_argument("--capital", type=float, default=11.0, help="رأس المال الافتراضي بعملة التسعير")
     parser.add_argument("--fee-rate", type=float, default=0.001, help="رسوم كل جهة؛ الافتراضي 0.1%%")
     parser.add_argument("--slippage-rate", type=float, default=0.0005, help="انزلاق افتراضي لكل تنفيذ؛ الافتراضي 0.05%%")

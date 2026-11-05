@@ -85,6 +85,8 @@ def test_cli_source_contains_no_order_or_private_account_routes():
     source_root = Path(__file__).parents[1] / "drakbot"
     source = "\n".join(path.read_text(encoding="utf-8") for path in source_root.glob("*.py"))
     lowered = source.lower()
+    assert "binance_api_key" not in lowered
+    assert "binance_api_secret" not in lowered
     assert "requests.post" not in lowered
     assert "requests.put" not in lowered
     assert "requests.delete" not in lowered

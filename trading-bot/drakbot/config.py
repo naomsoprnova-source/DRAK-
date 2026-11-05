@@ -1,5 +1,6 @@
 """Conservative, fully configurable defaults for the paper-only prototype."""
 from dataclasses import dataclass
+from math import isfinite
 
 
 @dataclass(frozen=True)
@@ -29,6 +30,26 @@ class StrategyConfig:
     train_fraction: float = 0.70
 
     def validate(self) -> None:
+        float_fields = (
+            "initial_capital", "fee_rate", "slippage_rate", "risk_fraction",
+            "max_position_fraction", "min_notional", "rsi_min", "rsi_max",
+            "stop_atr_multiple", "reward_risk_ratio", "train_fraction",
+        )
+        for field in float_fields:
+            value = getattr(self, field)
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not isfinite(value):
+                raise ValueError(f"{field} must be a finite number")
+
+        integer_fields = (
+            "ema_fast", "ema_slow", "rsi_period", "macd_fast", "macd_slow",
+            "macd_signal", "atr_period", "volume_period", "htf_ema_fast",
+            "htf_ema_slow", "max_hold_bars", "max_trades_per_day",
+        )
+        for field in integer_fields:
+            value = getattr(self, field)
+            if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+                raise ValueError(f"{field} must be a positive integer")
+
         if self.initial_capital <= 0:
             raise ValueError("initial_capital must be positive")
         if not 0 <= self.fee_rate < 0.1:
@@ -45,13 +66,11 @@ class StrategyConfig:
             raise ValueError("ema_fast must be less than ema_slow")
         if self.macd_fast >= self.macd_slow:
             raise ValueError("macd_fast must be less than macd_slow")
+        if self.htf_ema_fast >= self.htf_ema_slow:
+            raise ValueError("htf_ema_fast must be less than htf_ema_slow")
         if self.rsi_min < 0 or self.rsi_max > 100 or self.rsi_min >= self.rsi_max:
             raise ValueError("RSI bounds must satisfy 0 <= min < max <= 100")
         if self.stop_atr_multiple <= 0 or self.reward_risk_ratio <= 0:
             raise ValueError("stop and reward/risk multiples must be positive")
-        if self.max_hold_bars < 1:
-            raise ValueError("max_hold_bars must be at least 1")
-        if self.max_trades_per_day < 1:
-            raise ValueError("max_trades_per_day must be at least 1")
         if not 0 < self.train_fraction < 1:
             raise ValueError("train_fraction must be between 0 and 1")

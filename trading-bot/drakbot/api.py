@@ -1,8 +1,10 @@
 """Read-only client for Binance public Spot market data (no API keys)."""
 import csv
+import re
 import time
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 import requests
 
@@ -11,20 +13,66 @@ from .models import Candle
 PUBLIC_BASE_URL = "https://data-api.binance.vision"
 INTERVAL_MS = {"15m": 15 * 60 * 1000, "1h": 60 * 60 * 1000}
 KLINE_LIMIT = 1000
+_PUBLIC_HOST = "data-api.binance.vision"
+_PUBLIC_PATHS = {"/api/v3/klines", "/api/v3/exchangeInfo"}
+_SYMBOL_PATTERN = re.compile(r"[A-Z0-9]{1,32}", re.ASCII)
 
 
 class MarketDataError(RuntimeError):
     pass
 
 
+def _validate_public_url(url: str, allowed_paths: set[str]) -> None:
+    message = "URL must use the official public Binance market-data host"
+    if not isinstance(url, str):
+        raise ValueError(message)
+    try:
+        parsed = urlsplit(url)
+        port = parsed.port
+    except ValueError as exc:
+        raise ValueError(message) from exc
+    if (
+        parsed.scheme.lower() != "https"
+        or parsed.hostname != _PUBLIC_HOST
+        or port not in (None, 443)
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.path not in allowed_paths
+        or parsed.query
+        or parsed.fragment
+    ):
+        raise ValueError(message)
+
+
+def validate_public_base_url(base_url: str) -> str:
+    """Accept only the official public market-data origin; normalize its form."""
+    _validate_public_url(base_url, {"", "/"})
+    return PUBLIC_BASE_URL
+
+
+def validate_symbol(symbol: str) -> str:
+    """Return an uppercase Binance-style symbol with safe filename characters."""
+    if not isinstance(symbol, str) or not symbol.isascii():
+        raise ValueError("symbol must contain 1 to 32 ASCII letters or digits")
+    normalized = symbol.upper()
+    if not _SYMBOL_PATTERN.fullmatch(normalized):
+        raise ValueError("symbol must contain 1 to 32 ASCII letters or digits")
+    return normalized
+
+
 def _get_json(url: str, params: dict[str, Any], timeout: float = 15.0) -> Any:
+    _validate_public_url(url, _PUBLIC_PATHS)
     last_error: Exception | None = None
     for attempt in range(3):
         try:
-            response = requests.get(url, params=params, timeout=timeout)
+            response = requests.get(url, params=params, timeout=timeout, allow_redirects=False)
+            if 300 <= response.status_code < 400:
+                raise MarketDataError("Unexpected redirect from the official public market-data endpoint")
             if response.status_code in (418, 429):
-                delay = min(float(response.headers.get("Retry-After", 2 ** attempt)), 30.0)
-                time.sleep(delay)
+                last_error = MarketDataError("rate limit")
+                if attempt < 2:
+                    delay = min(float(response.headers.get("Retry-After", 2 ** attempt)), 30.0)
+                    time.sleep(delay)
                 continue
             response.raise_for_status()
             return response.json()
@@ -42,6 +90,8 @@ def fetch_spot_klines(
     interval: str = "15m",
     base_url: str = PUBLIC_BASE_URL,
 ) -> list[Candle]:
+    symbol = validate_symbol(symbol)
+    base_url = validate_public_base_url(base_url)
     if interval not in INTERVAL_MS:
         raise ValueError(f"Unsupported interval: {interval}")
     if start_ms >= end_ms:
@@ -65,6 +115,10 @@ def fetch_spot_klines(
                 low=float(row[3]), close=float(row[4]), volume=float(row[5]),
                 close_time_ms=int(row[6]),
             )
+            if candle.open_time_ms % step != 0:
+                raise MarketDataError(f"Malformed {interval} candle open time returned by Binance")
+            if candle.close_time_ms != candle.open_time_ms + step - 1:
+                raise MarketDataError(f"Malformed {interval} candle duration returned by Binance")
             if start_ms <= candle.open_time_ms and candle.close_time_ms <= end_ms:
                 candles.append(candle)
         last_open_ms = int(payload[-1][0])
@@ -83,7 +137,9 @@ def fetch_spot_klines(
 
 
 def fetch_min_notional(symbol: str, base_url: str = PUBLIC_BASE_URL) -> float:
-    payload = _get_json(f"{base_url.rstrip('/')}/api/v3/exchangeInfo", {"symbol": symbol.upper()})
+    symbol = validate_symbol(symbol)
+    base_url = validate_public_base_url(base_url)
+    payload = _get_json(f"{base_url}/api/v3/exchangeInfo", {"symbol": symbol})
     symbols = payload.get("symbols", []) if isinstance(payload, dict) else []
     if not symbols:
         raise MarketDataError(f"No exchangeInfo symbol filters returned for {symbol}")
@@ -113,12 +169,17 @@ def read_candles_csv(path: str | Path) -> list[Candle]:
         required = {"open_time_ms", "open", "high", "low", "close", "volume", "close_time_ms"}
         if not reader.fieldnames or not required.issubset(reader.fieldnames):
             raise ValueError(f"CSV must contain columns: {', '.join(sorted(required))}")
-        for row in reader:
-            candles.append(Candle(
+        for row_number, row in enumerate(reader, start=2):
+            candle = Candle(
                 open_time_ms=int(row["open_time_ms"]), open=float(row["open"]), high=float(row["high"]),
                 low=float(row["low"]), close=float(row["close"]), volume=float(row["volume"]),
                 close_time_ms=int(row["close_time_ms"]),
-            ))
+            )
+            if candle.open_time_ms % INTERVAL_MS["15m"] != 0:
+                raise ValueError(f"CSV row {row_number} has invalid 15m open time")
+            if candle.close_time_ms != candle.open_time_ms + INTERVAL_MS["15m"] - 1:
+                raise ValueError(f"CSV row {row_number} has invalid 15m close time")
+            candles.append(candle)
     candles.sort(key=lambda c: c.open_time_ms)
     if any(a.open_time_ms == b.open_time_ms for a, b in zip(candles, candles[1:])):
         raise ValueError("CSV contains duplicate candle open times")
