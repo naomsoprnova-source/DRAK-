@@ -36,6 +36,8 @@ def _args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--fee-rate", type=float, default=0.001, help="رسوم كل جهة؛ الافتراضي 0.1%%")
     parser.add_argument("--slippage-rate", type=float, default=0.0005, help="انزلاق افتراضي لكل تنفيذ؛ الافتراضي 0.05%%")
     parser.add_argument("--risk-pct", type=float, default=1.0, help="المخاطرة النظرية عند الوقف كنسبة من الرصيد")
+    parser.add_argument("--max-position-pct", type=float, default=50.0, help="أقصى قيمة لمركز واحد كنسبة من الرصيد؛ الافتراضي 50%%")
+    parser.add_argument("--max-trades-per-day", type=int, default=4, help="أقصى دخولات محاكاة في يوم UTC؛ الافتراضي 4")
     parser.add_argument("--min-notional", type=float, help="تجاوز الحد الأدنى الحالي للزوج؛ لا يؤثر على بيانات تاريخية قديمة")
     parser.add_argument("--train-fraction", type=float, default=0.70, help="حصة الجزء الأول، الافتراضي 70%%")
     parser.add_argument("--warmup-days", type=int, default=21, help="تاريخ إضافي لتهيئة المؤشرات قبل فترة القياس")
@@ -71,18 +73,23 @@ def _markdown_report(report: dict) -> str:
         "",
         "## النتائج",
         "",
-        "| الجزء | البداية (UTC) | النهاية (UTC) | الصفقات | صافي الرصيد | العائد | أقصى تراجع | نسبة الصفقات الرابحة | معامل الربح | الرسوم | شراء واحتفاظ للمقارنة |",
-        "|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|",
+        "| الجزء | البداية (UTC) | النهاية (UTC) | الصفقات | محاولات دخول محجوبة | صافي الرصيد | العائد | أقصى تراجع | نسبة الصفقات الرابحة | معامل الربح | الرسوم | شراء واحتفاظ للمقارنة |",
+        "|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for name, title in (("train", "التدريب"), ("out_of_sample", "خارج العينة"), ("full_period", "الفترة كاملة")):
         item = report["periods"][name]
         s = item["summary"]
         sections.append(
-            f"| {title} | {item['period_start_utc']} | {item['period_end_utc']} | {s['trade_count']} | "
+            f"| {title} | {item['period_start_utc']} | {item['period_end_utc']} | {s['trade_count']} | {s['blocked_entry_attempts']} | "
             f"{s['final_equity']:.6f} {meta['quote_asset']} | {_pretty_pct(s['return_pct'])} | "
             f"{s['max_drawdown_pct']:.4f}% | {s['win_rate_pct']:.2f}% | {s['profit_factor']} | {s['total_fees_quote']:.6f} | "
             f"{_pretty_pct(s['benchmark_return_pct'])} |"
         )
+    sections.extend(["", "## محاولات الدخول المحجوبة", ""])
+    for name, title in (("train", "التدريب"), ("out_of_sample", "خارج العينة"), ("full_period", "الفترة كاملة")):
+        blocks = report["periods"][name].get("risk_blocks", {})
+        details = ", ".join(f"{reason}: {count}" for reason, count in blocks.items())
+        sections.append(f"- {title}: {details or 'لا توجد محاولات محجوبة'}.")
     sections.extend([
         "",
         "## افتراضات التنفيذ والاستراتيجية",
@@ -90,7 +97,7 @@ def _markdown_report(report: dict) -> str:
         f"- شراء فوري طويل فقط؛ رصيد البداية {config['initial_capital']:.2f} {meta['quote_asset']} لكل جزء منفصل.",
         f"- الدخول عند افتتاح الشمعة التالية بعد تقاطع EMA {config['ema_fast']}/{config['ema_slow']}، وRSI {config['rsi_min']:.0f}–{config['rsi_max']:.0f}، وMACD موجب، وحجم لا يقل عن متوسط {config['volume_period']} شمعة.",
         f"- فلتر الساعة: إغلاق الساعة المكتملة فوق EMA {config['htf_ema_slow']} وEMA {config['htf_ema_fast']} فوق EMA {config['htf_ema_slow']}.",
-        f"- الوقف {config['stop_atr_multiple']} ATR والهدف {config['reward_risk_ratio']}R؛ لا تتجاوز المخاطرة المستهدفة {config['risk_fraction']*100:.2f}% من الرصيد لكل صفقة، ويُرفض المركز إذا كان أصغر من الحد الأدنى للقيمة الاسمية.",
+        f"- الوقف {config['stop_atr_multiple']} ATR والهدف {config['reward_risk_ratio']}R؛ لا تتجاوز المخاطرة المستهدفة {config['risk_fraction']*100:.2f}% من الرصيد لكل صفقة، مع حد مركز {config['max_position_fraction']*100:.1f}% وحد أقصى {config['max_trades_per_day']} دخولات في يوم UTC. تُسجّل أسباب محاولات الدخول المحجوبة.",
         f"- رسم مفترض {config['fee_rate']*100:.3f}% وانزلاق مفترض {config['slippage_rate']*100:.3f}% في كل جهة؛ لا تمثل هذه التكاليف بالضرورة رسوم حساب أو تنفيذ المستخدم.",
         "- إذا لامس الوقف والهدف داخل الشمعة نفسها، يحتسب المحرك الوقف أولًا. الانزلاق والرسوم مفترضان، والشموع لا تحاكي عمق السوق أو التنفيذ الجزئي.",
         "- وقت الخروج المسجل عند لمس الوقف أو الهدف داخل الشمعة هو وقت إغلاق شمعة 15m؛ بيانات OHLC لا تحدد لحظة اللمس الفعلية.",
@@ -116,6 +123,8 @@ def run_backtest_command(args: argparse.Namespace) -> dict:
         fee_rate=args.fee_rate,
         slippage_rate=args.slippage_rate,
         risk_fraction=args.risk_pct / 100.0,
+        max_position_fraction=args.max_position_pct / 100.0,
+        max_trades_per_day=args.max_trades_per_day,
         train_fraction=args.train_fraction,
     )
     config.validate()
@@ -179,7 +188,7 @@ def run_backtest_command(args: argparse.Namespace) -> dict:
     data_file_name = Path(args.save_data).name if args.save_data else Path(args.data_csv).name if args.data_csv else "<ملف-CSV-المحفوظ>"
     report = {
         "project": "DRAK Binance Spot paper-only backtester",
-        "version": "0.2.0",
+        "version": "0.3.0",
         "metadata": {
             "symbol": args.symbol.upper(), "quote_asset": quote_asset, "days": args.days,
             "data_source": data_source, "retrieved_at_utc": retrieval_time,

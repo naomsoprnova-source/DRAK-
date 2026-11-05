@@ -1,10 +1,12 @@
 """Long-only paper backtester with explicit fees, slippage and conservative fills."""
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from math import isfinite
 from typing import Optional
 
 from .config import StrategyConfig
 from .models import Candle, Trade, iso_utc
+from .risk import assess_paper_entry
 
 
 @dataclass
@@ -17,6 +19,7 @@ class BacktestResult:
     equity_curve: list[float]
     benchmark_final_equity: float
     total_fees_quote: float
+    risk_blocks: dict[str, int]
 
     def summary(self) -> dict[str, float | int]:
         pnls = [trade.net_pnl_quote for trade in self.trades]
@@ -40,6 +43,7 @@ class BacktestResult:
             "max_drawdown_pct": max_drawdown * 100.0,
             "profit_factor": (gross_profit / gross_loss) if gross_loss else (float("inf") if gross_profit else 0.0),
             "total_fees_quote": self.total_fees_quote,
+            "blocked_entry_attempts": sum(self.risk_blocks.values()),
             "benchmark_final_equity": self.benchmark_final_equity,
             "benchmark_return_pct": (self.benchmark_final_equity / self.initial_equity - 1.0) * 100.0,
         }
@@ -53,6 +57,7 @@ class BacktestResult:
             "period_end_utc": iso_utc(candles[self.end_index - 1].close_time_ms),
             "bars": self.end_index - self.start_index,
             "summary": summary,
+            "risk_blocks": dict(self.risk_blocks),
             "trades": [trade.to_dict() for trade in self.trades],
         }
 
@@ -100,33 +105,47 @@ def backtest_range(
     trades: list[Trade] = []
     equity_curve: list[float] = []
     total_fees = 0.0
+    risk_blocks: dict[str, int] = {}
+    entries_by_utc_day: dict[str, int] = {}
 
     for i in range(begin, end):
         candle = candles[i]
 
         # A signal formed at the previous 15m close can fill at this candle's open.
         if position is None and i > begin and signals[i - 1]:
-            signal_atr = atr_values[i - 1]
-            if signal_atr is not None and isfinite(signal_atr) and signal_atr > 0 and cash > 0:
-                entry_price = candle.open * (1.0 + config.slippage_rate)
-                stop_distance = signal_atr * config.stop_atr_multiple
-                stop_price = entry_price - stop_distance
-                target_price = entry_price + stop_distance * config.reward_risk_ratio
-                # Budget fees and modeled stop slippage in the risk-per-unit estimate.
-                stop_exit_estimate = stop_price * (1.0 - config.slippage_rate)
-                loss_per_unit = entry_price * (1.0 + config.fee_rate) - stop_exit_estimate * (1.0 - config.fee_rate)
-                if loss_per_unit > 0:
-                    equity_now = cash
-                    risk_qty = equity_now * config.risk_fraction / loss_per_unit
-                    cash_qty = cash / (entry_price * (1.0 + config.fee_rate))
-                    quantity = min(risk_qty, cash_qty)
-                    notional = quantity * entry_price
-                    if quantity > 0 and notional >= floor_notional:
+            entry_day = datetime.fromtimestamp(candle.open_time_ms / 1000, tz=timezone.utc).date().isoformat()
+            if entries_by_utc_day.get(entry_day, 0) >= config.max_trades_per_day:
+                risk_blocks["daily_trade_limit"] = risk_blocks.get("daily_trade_limit", 0) + 1
+            else:
+                signal_atr = atr_values[i - 1]
+                if signal_atr is not None and isfinite(signal_atr) and signal_atr > 0 and cash > 0:
+                    entry_price = candle.open * (1.0 + config.slippage_rate)
+                    stop_distance = signal_atr * config.stop_atr_multiple
+                    stop_price = entry_price - stop_distance
+                    target_price = entry_price + stop_distance * config.reward_risk_ratio
+                    assessment = assess_paper_entry(
+                        equity=cash,
+                        cash=cash,
+                        entry_price=entry_price,
+                        stop_price=stop_price,
+                        risk_fraction=config.risk_fraction,
+                        max_position_fraction=config.max_position_fraction,
+                        fee_rate=config.fee_rate,
+                        slippage_rate=config.slippage_rate,
+                        min_notional=floor_notional,
+                    )
+                    if not assessment.allowed:
+                        for reason in assessment.blocked_by:
+                            risk_blocks[reason] = risk_blocks.get(reason, 0) + 1
+                    else:
+                        quantity = assessment.quantity
+                        notional = assessment.notional
                         entry_fee = notional * config.fee_rate
                         entry_cost = notional + entry_fee
                         cash -= entry_cost
                         total_fees += entry_fee
                         position = _Position(i, entry_price, quantity, stop_price, target_price, entry_cost, entry_fee)
+                        entries_by_utc_day[entry_day] = entries_by_utc_day.get(entry_day, 0) + 1
 
         if position is not None:
             held_bars = i - position.entry_index + 1
@@ -209,4 +228,5 @@ def backtest_range(
         equity_curve=equity_curve,
         benchmark_final_equity=_benchmark(candles, begin, end, config),
         total_fees_quote=total_fees,
+        risk_blocks=risk_blocks,
     )

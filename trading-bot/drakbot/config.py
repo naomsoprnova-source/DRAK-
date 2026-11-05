@@ -8,6 +8,7 @@ class StrategyConfig:
     fee_rate: float = 0.001  # 0.10% per side; no VIP discount assumed.
     slippage_rate: float = 0.0005  # 5 bps adverse execution assumption per side.
     risk_fraction: float = 0.01  # 1% of current equity at the modeled stop.
+    max_position_fraction: float = 0.50  # At most half of paper equity in one entry.
     min_notional: float = 5.0  # Overridden by current public symbol filters when available.
     ema_fast: int = 9
     ema_slow: int = 21
@@ -24,6 +25,7 @@ class StrategyConfig:
     htf_ema_fast: int = 20
     htf_ema_slow: int = 50
     max_hold_bars: int = 96  # One day on 15-minute candles.
+    max_trades_per_day: int = 4  # UTC-day limit for simulated entries.
     train_fraction: float = 0.70
 
     def validate(self) -> None:
@@ -35,6 +37,8 @@ class StrategyConfig:
             raise ValueError("slippage_rate must be in [0, 0.1)")
         if not 0 < self.risk_fraction <= 0.05:
             raise ValueError("risk_fraction must be in (0, 0.05]")
+        if not 0 < self.max_position_fraction <= 1:
+            raise ValueError("max_position_fraction must be in (0, 1]")
         if self.min_notional < 0:
             raise ValueError("min_notional must not be negative")
         if self.ema_fast >= self.ema_slow:
@@ -47,5 +51,7 @@ class StrategyConfig:
             raise ValueError("stop and reward/risk multiples must be positive")
         if self.max_hold_bars < 1:
             raise ValueError("max_hold_bars must be at least 1")
+        if self.max_trades_per_day < 1:
+            raise ValueError("max_trades_per_day must be at least 1")
         if not 0 < self.train_fraction < 1:
             raise ValueError("train_fraction must be between 0 and 1")
