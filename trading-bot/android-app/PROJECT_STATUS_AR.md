@@ -37,4 +37,4 @@
 
 ## GitHub
 
-الفرع المحلي الحالي `feature/drak-android-paper-ui`. سير البناء الفعلي في `.github/workflows/build-drak-android.yml` عند جذر المستودع، بصلاحية `contents: read` فقط ولا ينفذ `git push` تلقائيًا. لا توجد نتيجة CI لهذه النسخة قبل رفع الفرع؛ لا يُعد هذا الـAPK المحلي أثر GitHub Actions.
+الفرع المنشور `feature/drak-android-paper-ui`؛ لم يتغير `main` ولم يُنشأ طلب دمج. سير البناء الفعلي في `.github/workflows/build-drak-android.yml` عند جذر المستودع، بصلاحية `contents: read` فقط، ومثبت على `ubuntu-24.04` ويستخدم Actions بإصدارات Node 24 مع cache أساسي مفتوح المصدر. يرفع سير العمل APK كأثر عند تشغيله؛ هذا الملف المحلي توقيعه debug وليس ملف إصدار متجر.
