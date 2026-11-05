@@ -1,27 +1,32 @@
-# بناء وتثبيت DRAK Android
+# بناء وتثبيت DRAK ورقي
 
-## تنزيل ملف APK
+## المتطلبات
 
-من المستودع افتح تبويب Actions، ثم اختر آخر تشغيل ناجح لسير عمل بناء أندرويد، ثم نزّل الأثر المسمى DRAK-Android-debug. هذا أثر مؤقت وقد تنتهي صلاحيته وفق إعدادات GitHub Actions.
+Java 17 أو أحدث متوافق مع Gradle 8.9، وAndroid SDK Platform 35 وBuild Tools 35.0.1. سير GitHub Actions الفعلي موجود في `.github/workflows/build-drak-android.yml` عند جذر المستودع، ويعمل عند تغيير `trading-bot/android-app/**` أو يدويًا. صلاحياته قراءة فقط ولا يدفع ملفات إلى المستودع.
 
-رابط سجل البناء:
-https://github.com/naomsoprnova-source/DRAK-/actions/workflows/build-drak-android.yml
+## بناء APK تجريبي
 
-## البناء من المصدر
+من جذر المستودع:
 
-يتطلب البناء Java 17 واتصالًا بالإنترنت لتنزيل Gradle ومكتبات أندرويد. من مجلد trading-bot/android-app شغّل:
+```bash
+cd trading-bot/android-app
+gradle assembleDebug
+```
 
-    gradle assembleDebug
+الناتج:
 
-مسار ملف التثبيت الناتج:
+```text
+app/build/outputs/apk/debug/app-debug.apk
+```
 
-    app/build/outputs/apk/debug/app-debug.apk
+للتثبيت عبر جهاز Android متصل ومفعّل عليه تصحيح USB:
 
-## التثبيت على أندرويد
+```bash
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
 
-1. انقل ملف APK إلى الهاتف أو نزّله مباشرة.
-2. افتحه من مدير الملفات.
-3. إذا طلب أندرويد إذن التثبيت من هذا المصدر، فعّله لهذا التطبيق فقط ثم أعد المحاولة.
-4. بعد التثبيت، ابدأ بوضع الاختبار ولا تدخل مفاتيح حسابك الحقيقي.
+يمكن كذلك تنزيل أثر `DRAK-Android-debug` من تشغيل GitHub Actions بعد نجاحه. الأثر تجريبي ومؤقت؛ لا توجد نسخة release موقعة بمفتاح نشر دائم.
 
-ملف debug مخصص للتجربة، وليس إصدارًا نهائيًا موقّعًا للنشر في متجر التطبيقات.
+## اختبار سريع بعد التثبيت
+
+افتح التطبيق وتأكد من ظهور «محاكاة محلية»، وأن السعر موسوم بأنه اصطناعي. بدّل الرمز والفاصل، حلّل استراتيجية، افتح مركزًا ورقيًا ثم أغلقه، وافتح السجل. راجع [قائمة الاختبار](TEST_CHECKLIST_AR.md). لا توجد خطوة لربط حساب أو إدخال مفتاح.
