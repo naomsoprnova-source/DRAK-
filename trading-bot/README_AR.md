@@ -57,3 +57,18 @@ python main.py backtest --symbol BTCUSDT --days 90 --data-csv data/BTCUSDT_15m_9
 ## مصدر البيانات
 
 يستخدم جلب الشموع نقطة `GET /api/v3/klines` العامة عبر `data-api.binance.vision`؛ لا يحتاج هذا المسار إلى مصادقة وفق [توثيق Binance الرسمي لبيانات السوق العامة](https://developers.binance.com/en/docs/products/spot/faqs/market_data_only). مواصفات الأعمدة وحد الطلب موثقة في [Kline/Candlestick data](https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market).
+
+
+## مهارات العملات الرقمية الورقية
+
+للاطلاع على الوظائف الإحدى عشرة المكيّفة لـ Binance Spot ورأس مال افتراضي 11 USDT، راجع [CRYPTO_SKILLS_AR.md](CRYPTO_SKILLS_AR.md).
+
+واجهة الأوامر لهذه الوظائف منفصلة عن واجهة الاختبار التاريخي:
+
+```bash
+python -m drakbot.skills_cli watchlist --input examples/watchlist.json
+python -m drakbot.skills_cli size --input examples/spot-plan.json
+python -m drakbot.skills_cli risk --input examples/risk-check.json
+```
+
+كل المدخلات ملفات JSON للقراءة فقط. لا يوجد أمر إرسال تداول؛ تذكرة `ticket` للعرض فقط، وتُرفض ما لم تجتز الخطة نفسها بوابة المخاطر. لجلب مرشحات الزوج الحالية فقط، يمكن لعملية `size` استخدام `fetch_current_filters: true` عبر نقطة Binance العامة للقراءة، وليس عبر مفتاح API.

@@ -1,0 +1,25 @@
+{
+  "symbol": "BTCUSDT",
+  "entry_price": 100.0,
+  "stop_price": 99.5,
+  "config": {
+    "capital_usdt": 11.0,
+    "cash_buffer_pct": 20.0,
+    "max_position_pct": 70.0,
+    "risk_pct": 1.0,
+    "fee_rate": 0.001,
+    "slippage_rate": 0.0005,
+    "min_notional_usdt": 5.0,
+    "min_reward_risk": 2.0,
+    "max_open_positions": 1,
+    "max_orders_per_day": 3,
+    "max_daily_loss_pct": 3.0,
+    "paper_only": true
+  },
+  "filters": {
+    "min_qty": 0.0,
+    "step_size": 0.0,
+    "tick_size": 0.0,
+    "min_notional": 5.0
+  }
+}

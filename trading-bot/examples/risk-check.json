@@ -1,0 +1,23 @@
+{
+  "plan": {
+    "symbol": "BTCUSDT",
+    "side": "BUY",
+    "entry_price": 100.0,
+    "stop_price": 99.5,
+    "target_price": 101.0,
+    "reward_risk": 2.0,
+    "quantity": 0.077,
+    "notional_usdt": 7.7,
+    "estimated_risk_usdt": 0.06154226925,
+    "risk_budget_usdt": 0.11,
+    "min_notional_usdt": 5.0,
+    "status": "PROPOSED",
+    "reasons": [],
+    "paper_only": true,
+    "execution_performed": false
+  },
+  "current_position_usdt": 0.0,
+  "open_positions": 0,
+  "daily_loss_usdt": 0.0,
+  "orders_today": 0
+}
