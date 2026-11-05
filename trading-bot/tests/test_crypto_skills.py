@@ -133,6 +133,7 @@ def test_price_alerts_notify_once_and_never_execute():
     fired = evaluate_price_alerts(alerts, {"BTCUSDT": 101})
     assert fired[0]["action"] == "NOTIFY_ONLY"
     assert fired[0]["execution_performed"] is False
+    assert evaluate_price_alerts(alerts + alerts, {"BTCUSDT": 101}) == fired
     assert evaluate_price_alerts(alerts, {"BTCUSDT": 101}, already_triggered=["a1"]) == []
 
 
@@ -155,3 +156,17 @@ def test_proposal_sizing_caps_number_of_open_positions():
     assert len(results) == 2
     assert results[1]["status"] == "BLOCK"
     assert results[1]["execution_performed"] is False
+
+
+
+def test_rebalance_reports_positions_removed_from_target_and_rejects_negative_values():
+    result = rebalance_analysis(
+        {"BTCUSDT": 4.0, "ETHUSDT": 2.0},
+        [{"symbol": "BTCUSDT", "weight_pct": 50}],
+        cash_usdt=2.0,
+    )
+    eth = next(row for row in result["positions"] if row["symbol"] == "ETHUSDT")
+    assert eth["action"] == "REDUCE"
+    assert eth["target_value_usdt"] == 0.0
+    with pytest.raises(ValueError, match="cannot be negative"):
+        rebalance_analysis({"BTCUSDT": -1}, [{"symbol": "BTCUSDT", "weight_pct": 50}], cash_usdt=2)
