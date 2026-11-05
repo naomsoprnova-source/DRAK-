@@ -78,7 +78,7 @@ def test_risk_gate_blocks_daily_loss_and_open_position_limits():
 def test_news_and_exchange_events_require_source_and_watchlist_match():
     watch = ["BTCUSDT"]
     news = match_market_news([
-        {"title": "BTC update", "source": "source-a", "symbols": watch, "verified": False},
+        {"title": "BTC update", "source": "source-a", "symbols": watch, "published_at_ms": 100, "verified": False},
         {"title": "ETH update", "source": "source-a", "symbols": ["ETHUSDT"]},
         {"title": "missing source", "symbols": watch},
     ], watch)
@@ -86,7 +86,7 @@ def test_news_and_exchange_events_require_source_and_watchlist_match():
     assert news[0]["verified"] is False
     events = match_market_events([
         {"title": "BTC listing notice", "source": "exchange", "event_type": "listing",
-         "symbols": watch, "event_time": "2026-11-05T00:00:00Z"},
+         "symbols": watch, "event_time_ms": 200},
         {"title": "noise", "source": "exchange", "event_type": "rumor", "symbols": watch},
     ], watch)
     assert len(events) == 1
