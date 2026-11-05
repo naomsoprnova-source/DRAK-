@@ -1,0 +1,6 @@
+{
+  "rows": [
+    {"symbol": "BTCUSDT", "weight_pct": 60},
+    {"symbol": "ETHUSDT", "weight_pct": 25}
+  ]
+}
