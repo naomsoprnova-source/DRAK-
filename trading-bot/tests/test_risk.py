@@ -2,6 +2,7 @@ from drakbot.backtest import backtest_range
 from drakbot.config import StrategyConfig
 from drakbot.risk import assess_paper_entry
 from drakbot.models import Candle
+import pytest
 
 
 def test_risk_budget_limits_stop_loss_after_costs():
@@ -118,3 +119,44 @@ def test_backtest_resets_daily_entry_limit_at_utc_midnight():
                             0, len(candles), config, min_notional=0.0)
     assert len(result.trades) == 2
     assert result.risk_blocks == {"daily_trade_limit": 3}
+
+
+@pytest.mark.parametrize("stop_price", [10.0, 11.0])
+def test_stop_at_or_above_entry_is_blocked_as_invalid(stop_price):
+    result = assess_paper_entry(
+        equity=100.0,
+        cash=100.0,
+        entry_price=10.0,
+        stop_price=stop_price,
+        risk_fraction=0.01,
+        max_position_fraction=1.0,
+        fee_rate=0.001,
+        slippage_rate=0.0005,
+        min_notional=1.0,
+    )
+    assert not result.allowed
+    assert result.blocked_by == ("invalid_stop",)
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "equity", "cash", "entry_price", "stop_price", "risk_fraction",
+        "max_position_fraction", "fee_rate", "slippage_rate", "min_notional",
+    ],
+)
+def test_risk_rejects_non_finite_inputs(field):
+    values = {
+        "equity": 100.0,
+        "cash": 100.0,
+        "entry_price": 10.0,
+        "stop_price": 9.0,
+        "risk_fraction": 0.01,
+        "max_position_fraction": 1.0,
+        "fee_rate": 0.001,
+        "slippage_rate": 0.0005,
+        "min_notional": 1.0,
+    }
+    values[field] = float("nan")
+    with pytest.raises(ValueError, match="finite"):
+        assess_paper_entry(**values)
