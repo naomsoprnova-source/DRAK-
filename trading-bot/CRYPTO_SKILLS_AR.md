@@ -79,3 +79,17 @@ python -m pytest -q
 ## الأصل والترخيص
 
 استُلهم تصميم سير العمل من مشروع Trader Skill، المرخّص MIT. ملفات DRAK هنا تكييف مستقل لاحتياجات Spot، مع إبقاء وظائف التداول الحي خارج هذا المكوّن. راجع [المستودع الأصلي ورخصته](https://github.com/Jakeschincariol/trader-skill).
+
+
+## تشغيل الأوامر
+
+من داخل مجلد `trading-bot`:
+
+```bash
+python -m drakbot.skills_cli watchlist --input examples/watchlist.json
+python -m drakbot.skills_cli size --input examples/spot-plan.json
+python -m drakbot.skills_cli risk --input examples/risk-check.json
+python -m pytest -q
+```
+
+أمر `ticket` لا يقبل رقمًا ثابتًا أو قديمًا: شغّل `risk` أولًا، ثم انسخ قيمة `fingerprint` من نتيجته إلى ملف تذكرة العرض مع **الخطة نفسها دون أي تعديل**. أي تغيير في السعر أو الكمية أو الوقف يبطل البصمة ويستلزم فحص مخاطر جديدًا.
