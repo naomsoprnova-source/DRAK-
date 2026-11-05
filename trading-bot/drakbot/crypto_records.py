@@ -70,6 +70,7 @@ def evaluate_price_alerts(
                 "threshold": threshold, "operator": operator, "action": "NOTIFY_ONLY",
                 "execution_performed": False,
             })
+            seen.add(alert_id)
     return fired
 
 
@@ -78,31 +79,61 @@ def rebalance_analysis(
     targets: Sequence[Mapping[str, Any]],
     cash_usdt: float = 0.0,
 ) -> dict[str, Any]:
+    """Analyze all current holdings against targets; never emits execution orders."""
     cash = number(cash_usdt, "cash_usdt")
     if cash < 0:
         raise ValueError("cash_usdt cannot be negative")
-    total = cash + sum(number(value, "current position value") for value in current_values.values())
-    if total <= 0:
-        raise ValueError("portfolio equity must be positive")
-    rows = []
+
+    current: dict[str, float] = {}
+    for raw_symbol, raw_value in current_values.items():
+        symbol = validate_symbol(raw_symbol)
+        value = number(raw_value, f"current_values[{symbol}]")
+        if value < 0:
+            raise ValueError("position values cannot be negative")
+        if symbol in current:
+            raise ValueError(f"duplicate current position after normalization: {symbol}")
+        current[symbol] = value
+
+    target_rows: list[dict[str, Any]] = []
+    seen: set[str] = set()
     for target in targets:
         symbol = validate_symbol(target.get("symbol"))
         weight = number(target.get("weight_pct"), "weight_pct")
         if not 0 < weight <= 100:
             raise ValueError("target weights must be in (0, 100]")
-        current = number(current_values.get(symbol, 0.0), f"current_values[{symbol}]")
-        if current < 0:
-            raise ValueError("position values cannot be negative")
+        if symbol in seen:
+            raise ValueError(f"duplicate target symbol: {symbol}")
+        seen.add(symbol)
+        target_rows.append({"symbol": symbol, "weight_pct": weight})
+    if not target_rows:
+        raise ValueError("at least one target is required")
+    if sum(row["weight_pct"] for row in target_rows) > 100.000001:
+        raise ValueError("target weights total cannot exceed 100%")
+
+    total = cash + sum(current.values())
+    if total <= 0:
+        raise ValueError("portfolio equity must be positive")
+
+    rows = []
+    for target in target_rows:
+        symbol = target["symbol"]
+        weight = target["weight_pct"]
         desired = total * weight / 100
-        delta = desired - current
+        held = current.get(symbol, 0.0)
+        delta = desired - held
         rows.append({
             "symbol": symbol, "target_weight_pct": weight,
-            "current_value_usdt": current, "target_value_usdt": desired,
+            "current_value_usdt": held, "target_value_usdt": desired,
             "difference_usdt": delta,
-            "action": "BUY" if delta > 0 else "REDUCE" if delta < 0 else "HOLD",
+            "action": "BUY" if delta > 0.01 else "REDUCE" if delta < -0.01 else "HOLD",
         })
-    if sum(row["target_weight_pct"] for row in rows) > 100.000001:
-        raise ValueError("target weights total cannot exceed 100%")
+    for symbol in sorted(set(current) - seen):
+        rows.append({
+            "symbol": symbol, "target_weight_pct": 0.0,
+            "current_value_usdt": current[symbol], "target_value_usdt": 0.0,
+            "difference_usdt": -current[symbol],
+            "action": "REDUCE" if current[symbol] > 0.01 else "HOLD",
+        })
     return {
         "equity_usdt": total, "cash_usdt": cash, "positions": rows,
         "execution_performed": False,
