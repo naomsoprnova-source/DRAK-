@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#101411">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
-  <title>DRAK ورقي — محاكاة محلية</title>
+  <title>DRAK 0.3.0 — مختبر السوق والمحاكاة الورقية</title>
   <link rel="stylesheet" href="styles.css">
+  <script defer src="market-bridge.js"></script>
   <script defer src="paper-engine.js"></script>
   <script defer src="app.js"></script>
 </head>
@@ -17,143 +18,166 @@
       <div class="brand-lockup">
         <span class="brand-mark" aria-hidden="true"><span></span></span>
         <div>
-          <p class="brand-name">DRAK <span>ورقي</span></p>
-          <p class="brand-caption">مختبر تعلّم ومحاكاة</p>
+          <p class="brand-name">DRAK <span>مختبر</span></p>
+          <p class="brand-caption">تحليل ومحاكاة ورقية · 0.3.0</p>
         </div>
       </div>
-      <div class="offline-badge" role="status"><span class="status-dot" aria-hidden="true"></span><span>محاكاة محلية</span></div>
+      <div class="connection-controls">
+        <div class="connection-summary" role="status" aria-live="polite">
+          <span class="offline-badge state-loading" data-connection-badge><span class="status-dot" aria-hidden="true"></span><span data-connection-text>جار الاتصال</span></span>
+          <small data-last-updated>لم يصل تحديث بعد</small>
+        </div>
+        <button class="button button-secondary refresh-button" id="refresh-button" type="button" aria-label="تحديث أسعار Binance والشموع الآن">تحديث</button>
+      </div>
     </header>
+
+    <div class="market-error" id="market-error" role="status" aria-live="polite" hidden></div>
 
     <main id="main-content">
       <section class="screen is-active" id="screen-overview" data-screen="overview" aria-labelledby="overview-title">
         <div class="screen-heading">
-          <div><p class="eyebrow">مختبرك الشخصي</p><h1 id="overview-title">نظرة عامة</h1></div>
-          <span class="date-chip" data-date>جلسة محلية</span>
+          <div><p class="eyebrow">بيانات عامة من Binance Spot</p><h1 id="overview-title">نظرة عامة</h1></div>
+          <span class="date-chip" data-date>—</span>
         </div>
 
-        <section class="hero-card" aria-label="الرصيد الافتراضي">
-          <div class="hero-topline"><span>قيمة المحفظة الافتراضية</span><span class="soft-pill">لا أموال حقيقية</span></div>
-          <p class="hero-value"><span class="currency">USDT افتراضي</span><strong data-equity>—</strong></p>
-          <div class="hero-bottom"><span>الرصيد النقدي <b data-cash>—</b></span><span>النتيجة الكلية <b data-total-pnl>—</b></span></div>
+        <section class="hero-card" aria-label="رصيد المحاكاة الورقية">
+          <div class="hero-topline"><span>قيمة المحفظة الورقية التقديرية</span><span class="soft-pill">لا أموال حقيقية</span></div>
+          <p class="hero-value"><span class="currency">USDT ورقي</span><strong data-equity>—</strong></p>
+          <div class="hero-bottom"><span>الرصيد النقدي <b data-cash>—</b></span><span>صافي النتيجة <b data-total-pnl>—</b></span></div>
           <div class="hero-decoration" aria-hidden="true"></div>
         </section>
 
-        <div class="metric-grid" aria-label="ملخص المحاكاة">
-          <article class="metric-card"><span>مراكز مغلقة</span><strong data-trade-count>0</strong><small>محليًا فقط</small></article>
-          <article class="metric-card"><span>نسبة الفوز</span><strong data-win-rate>—</strong><small>من السجل الورقي</small></article>
-          <article class="metric-card"><span>المركز المفتوح</span><strong data-position-state>لا يوجد</strong><small data-position-caption>جاهز للتجربة</small></article>
+        <div class="metric-grid" aria-label="ملخص الحساب الورقي">
+          <article class="metric-card"><span>صفقات مغلقة</span><strong data-trade-count>0</strong><small>محاكاة فقط</small></article>
+          <article class="metric-card"><span>نسبة الفوز</span><strong data-win-rate>—</strong><small>من سجل الأسعار الحقيقية</small></article>
+          <article class="metric-card"><span>المركز الورقي</span><strong data-position-state>لا يوجد</strong><small data-position-caption>لا يوجد أمر حقيقي</small></article>
         </div>
 
         <div class="content-grid">
           <section class="panel chart-panel" aria-labelledby="chart-heading">
-            <div class="panel-heading"><div><p class="eyebrow">مسار مولّد محليًا</p><h2 id="chart-heading">السعر الاصطناعي</h2></div><span class="tag synthetic-tag">مصطنع</span></div>
-            <div class="chart-toolbar"><label class="compact-field" for="market-select">السوق التجريبي<select id="market-select"><option value="BTCUSDT">BTC / USDT</option><option value="ETHUSDT">ETH / USDT</option><option value="SOLUSDT">SOL / USDT</option></select></label><label class="compact-field" for="interval-select">الفاصل<select id="interval-select"><option value="5m">5 د</option><option value="15m" selected>15 د</option><option value="1h">1 س</option><option value="4h">4 س</option><option value="1d">يومي</option></select></label></div>
-            <div class="chart-price-row"><strong class="number-ltr" data-price>—</strong><span class="muted">آخر نقطة من عينة مصطنعة</span></div>
-            <canvas id="price-chart" class="price-chart" role="img" aria-label="رسم خطي لبيانات سعر اصطناعية محلية"></canvas>
-            <p class="chart-caption">هذه عينة مولّدة داخل الجهاز ولا تمثل سعر السوق أو توقعًا له.</p>
+            <div class="panel-heading"><div><p class="eyebrow">تاريخ السوق الفعلي</p><h2 id="chart-heading">شموع Binance Spot المغلقة</h2></div><span class="tag real-tag">بيانات حقيقية</span></div>
+            <div class="chart-toolbar">
+              <label class="compact-field" for="market-select">السوق<select id="market-select"><option value="BTCUSDT">BTC / USDT</option><option value="ETHUSDT">ETH / USDT</option><option value="SOLUSDT">SOL / USDT</option></select></label>
+              <label class="compact-field" for="interval-select">الفاصل<select id="interval-select"><option value="5m">5 د</option><option value="15m" selected>15 د</option><option value="1h">1 س</option><option value="4h">4 س</option><option value="1d">يومي</option></select></label>
+            </div>
+            <div class="chart-price-row"><strong class="number-ltr" data-price>—</strong><span class="muted" data-live-price-label>سعر Binance Spot اللحظي</span></div>
+            <canvas id="price-chart" class="price-chart" role="img" aria-label="رسم لآخر شموع Binance Spot المغلقة"></canvas>
+            <p class="chart-caption" data-candle-caption>لا توجد شموع محملة. اضغط تحديث لجلب بيانات Binance. لا تُستخدم الشمعة قيد التكوين.</p>
           </section>
 
           <section class="panel signal-panel" aria-labelledby="signal-heading">
-            <div class="panel-heading"><div><p class="eyebrow">قراءة تعليمية</p><h2 id="signal-heading">آخر تحليل</h2></div><span class="tag" data-signal-tag>انتظار</span></div>
+            <div class="panel-heading"><div><p class="eyebrow">إشارة من شمعة مغلقة</p><h2 id="signal-heading">آخر تحليل</h2></div><span class="tag warn-tag" data-signal-tag>انتظار</span></div>
             <p class="signal-strategy" data-signal-strategy>مرصد مركّب</p>
-            <p class="signal-reason" data-signal-reason>اختر استراتيجية ثم اطلب التحليل يدويًا.</p>
-            <div class="signal-foot"><span>مؤشر الشروط</span><b data-signal-score>—</b></div>
-            <button class="button button-primary button-block" data-nav="analysis">استكشاف الاستراتيجيات <span aria-hidden="true">←</span></button>
-            <p class="small-note">الإشارة لا تنفذ أي عملية، وليست توصية.</p>
+            <p class="signal-reason" data-signal-reason>يلزم جلب شموع Binance المغلقة قبل التحليل.</p>
+            <div class="signal-foot"><span>مقياس شروط غير تنبؤي</span><b data-signal-score>—</b></div>
+            <button class="button button-primary button-block" data-nav="analysis" type="button">استكشاف الاستراتيجيات <span aria-hidden="true">←</span></button>
+            <p class="small-note">التحليل لا ينفذ أوامر، وليس توصية أو ضمانًا للربح.</p>
           </section>
         </div>
 
-        <section class="market-strip" aria-label="قائمة الأسواق الاصطناعية">
-          <div class="section-title-row"><div><p class="eyebrow">عينات محلية</p><h2>أسواق للتجربة</h2></div><span class="tag synthetic-tag">بلا إنترنت</span></div>
+        <section class="market-strip" aria-label="أسعار Binance Spot">
+          <div class="section-title-row"><div><p class="eyebrow">أسعار من المصدر نفسه</p><h2>الأسواق المدعومة</h2></div><span class="tag real-tag">BTC · ETH · SOL</span></div>
           <div class="market-list" data-market-list></div>
         </section>
       </section>
 
       <section class="screen" id="screen-analysis" data-screen="analysis" aria-labelledby="analysis-title" hidden>
-        <div class="screen-heading"><div><p class="eyebrow">اختبر فكرة، لا أموالًا</p><h1 id="analysis-title">التحليل والاستراتيجيات</h1></div><span class="tag synthetic-tag">شموع مصطنعة</span></div>
+        <div class="screen-heading"><div><p class="eyebrow">اختبر فكرة، لا أموالًا</p><h1 id="analysis-title">التحليل والاستراتيجيات</h1></div><span class="tag real-tag">شموع مغلقة</span></div>
         <div class="panel controls-panel">
-          <div class="panel-heading"><div><p class="eyebrow">اختيار الإعداد</p><h2>استراتيجية تعليمية</h2></div><span class="small-note">7 خيارات</span></div>
+          <div class="panel-heading"><div><p class="eyebrow">اختيار الإعداد</p><h2>استراتيجية تحليل</h2></div><span class="small-note">7 استراتيجيات</span></div>
           <div class="strategy-grid" role="group" aria-label="اختر استراتيجية التحليل">
             <button class="strategy-card is-selected" type="button" data-strategy="composite" aria-pressed="true"><span class="strategy-icon" aria-hidden="true">◎</span><span><b>مرصد مركّب</b><small>اتجاه وزخم وحجم واختراق</small></span></button>
-            <button class="strategy-card" type="button" data-strategy="ema" aria-pressed="false"><span class="strategy-icon" aria-hidden="true">⌁</span><span><b>تقاطع المتوسطات</b><small>تقاطع EMA قصير وطويل</small></span></button>
-            <button class="strategy-card" type="button" data-strategy="rsi" aria-pressed="false"><span class="strategy-icon" aria-hidden="true">◌</span><span><b>ارتداد RSI</b><small>زخم الخروج من التشبع</small></span></button>
-            <button class="strategy-card" type="button" data-strategy="macd" aria-pressed="false"><span class="strategy-icon" aria-hidden="true">↗</span><span><b>زخم MACD</b><small>تقاطع مع فلتر اتجاه</small></span></button>
-            <button class="strategy-card" type="button" data-strategy="bollinger" aria-pressed="false"><span class="strategy-icon" aria-hidden="true">◉</span><span><b>نطاق بولينجر</b><small>عودة السعر إلى النطاق</small></span></button>
+            <button class="strategy-card" type="button" data-strategy="ema-cross" aria-pressed="false"><span class="strategy-icon" aria-hidden="true">⌁</span><span><b>تقاطع المتوسطات</b><small>تقاطع EMA 9 و21</small></span></button>
+            <button class="strategy-card" type="button" data-strategy="rsi-rebound" aria-pressed="false"><span class="strategy-icon" aria-hidden="true">◌</span><span><b>ارتداد RSI</b><small>ارتداد من مستوى 35</small></span></button>
+            <button class="strategy-card" type="button" data-strategy="macd" aria-pressed="false"><span class="strategy-icon" aria-hidden="true">↗</span><span><b>زخم MACD</b><small>تقاطع مع فلتر الاتجاه</small></span></button>
+            <button class="strategy-card" type="button" data-strategy="bollinger" aria-pressed="false"><span class="strategy-icon" aria-hidden="true">◉</span><span><b>نطاق بولينجر</b><small>عودة الإغلاق إلى النطاق</small></span></button>
             <button class="strategy-card" type="button" data-strategy="breakout" aria-pressed="false"><span class="strategy-icon" aria-hidden="true">⇧</span><span><b>اختراق قمة</b><small>قمة سابقة وحجم نسبي</small></span></button>
-            <button class="strategy-card" type="button" data-strategy="trend" aria-pressed="false"><span class="strategy-icon" aria-hidden="true">⌂</span><span><b>اتباع الاتجاه</b><small>اتجاه متوسط وزخم</small></span></button>
+            <button class="strategy-card" type="button" data-strategy="trend-follow" aria-pressed="false"><span class="strategy-icon" aria-hidden="true">⌂</span><span><b>اتباع الاتجاه</b><small>EMA وزخم RSI وMACD</small></span></button>
           </div>
-          <div class="button-row"><button class="button button-primary" id="analyze-button" type="button">حلّل العينة</button><button class="button button-secondary" data-nav="paper" type="button">اذهب للمحاكاة الورقية</button></div>
-          <p class="small-note">كل قاعدة للتوضيح فقط. اختر الاستراتيجية ثم حلّل يدويًا؛ لا توجد مراقبة تلقائية.</p>
+          <div class="button-row"><button class="button button-primary" id="analyze-button" type="button">حلّل آخر شمعة مغلقة</button><button class="button button-secondary" data-nav="paper" type="button">المحاكاة الورقية</button></div>
+          <p class="small-note">كل استراتيجية تستخدم الشموع المغلقة فقط. اخترها ثم حلّل يدويًا.</p>
         </div>
 
         <section class="panel result-panel" aria-labelledby="result-heading">
-          <div class="panel-heading"><div><p class="eyebrow">نتيجة من الجهاز</p><h2 id="result-heading">قراءة المؤشرات</h2></div><span class="tag" data-signal-tag>انتظار</span></div>
+          <div class="panel-heading"><div><p class="eyebrow">من بيانات Binance Spot</p><h2 id="result-heading">قراءة المؤشرات</h2></div><span class="tag warn-tag" data-signal-tag>انتظار</span></div>
           <p class="result-title" data-signal-strategy>مرصد مركّب</p>
-          <p class="signal-reason" data-signal-reason>اضغط «حلّل العينة» لقراءة البيانات الاصطناعية.</p>
-          <div class="indicator-grid"><div><span>السعر الافتراضي</span><b class="number-ltr" data-price>—</b></div><div><span>RSI تعليمي</span><b class="number-ltr" data-rsi>—</b></div><div><span>مقياس الشروط</span><b data-signal-score>—</b></div></div>
+          <p class="signal-reason" data-signal-reason>اضغط «حلّل آخر شمعة مغلقة» لبدء القراءة.</p>
+          <div class="indicator-grid"><div><span>سعر السوق</span><b class="number-ltr" data-price>—</b></div><div><span>RSI على شموع مغلقة</span><b class="number-ltr" data-rsi>—</b></div><div><span>مقياس الشروط</span><b data-signal-score>—</b></div></div>
         </section>
 
         <section class="panel backtest-panel" aria-labelledby="backtest-heading">
-          <div class="panel-heading"><div><p class="eyebrow">تقسيم زمني بسيط</p><h2 id="backtest-heading">اختبار اصطناعي 70 / 30</h2></div><span class="tag synthetic-tag">ليس سوقًا حقيقيًا</span></div>
-          <p class="body-copy">يعرض عينة التطوير منفصلة عن آخر 30% للتقييم. النتيجة لا تثبت ربحية استراتيجية، ولا تحاكي التنفيذ أو السيولة الفعلية.</p>
-          <button class="button button-secondary" id="backtest-button" type="button">شغّل الاختبار التعليمي</button>
+          <div class="panel-heading"><div><p class="eyebrow">تقسيم زمني دون خلط</p><h2 id="backtest-heading">اختبار تاريخي 70 / 30</h2></div><span class="tag real-tag">Binance Spot</span></div>
+          <p class="body-copy">يجلب التاريخ الفعلي، ويستخدم أول 70% للتطوير وآخر 30% للتقييم. مؤشرات التقييم تستخدم الماضي للتهيئة فقط؛ الدخول بعد الإشارة يكون عند افتتاح الشمعة التالية. هذا اختبار تاريخي لا يضمن نتيجة مستقبلية.</p>
+          <div class="backtest-controls">
+            <label class="compact-field" for="backtest-days">الفترة التاريخية<select id="backtest-days"><option value="7">7 أيام</option><option value="30" selected>30 يومًا</option><option value="90">90 يومًا</option></select></label>
+            <button class="button button-primary" id="backtest-button" type="button">اختبر الاستراتيجية المختارة</button>
+            <button class="button button-secondary" id="compare-strategies-button" type="button">قارن السبع استراتيجيات</button>
+          </div>
+          <p class="small-note" id="backtest-progress" aria-live="polite">يفرض الاختبار شموعًا متصلة ويخصم الرسوم والانزلاق التقديريين من صافي النتيجة.</p>
           <div class="backtest-results" id="backtest-results" hidden aria-live="polite"></div>
+          <div class="comparison-wrap" id="strategy-comparison" hidden aria-live="polite"></div>
         </section>
       </section>
 
       <section class="screen" id="screen-paper" data-screen="paper" aria-labelledby="paper-title" hidden>
-        <div class="screen-heading"><div><p class="eyebrow">أفعال يدوية محلية فقط</p><h1 id="paper-title">المحاكاة الورقية</h1></div><span class="tag synthetic-tag">لا أوامر حقيقية</span></div>
+        <div class="screen-heading"><div><p class="eyebrow">إدخالات محلية فقط</p><h1 id="paper-title">المحاكاة الورقية</h1></div><span class="tag real-tag">سعر Binance · بلا أمر</span></div>
         <section class="panel paper-wallet">
-          <div class="panel-heading"><div><p class="eyebrow">محفظة تجريبية</p><h2>الرصيد المتاح</h2></div><span class="soft-pill">USDT افتراضي</span></div>
+          <div class="panel-heading"><div><p class="eyebrow">محفظة افتراضية</p><h2>الرصيد المتاح</h2></div><span class="soft-pill">USDT ورقي</span></div>
           <strong class="large-number number-ltr" data-cash>—</strong>
-          <div class="paper-terms"><span>سقف المركز <b data-max-trade>10.00</b></span><span>رسوم افتراضية <b data-fee-rate>0.10%</b></span></div>
+          <div class="paper-terms"><span>سقف المركز <b data-max-trade>10.00</b> USDT</span><span>الرسوم التقديرية <b data-fee-rate>0.10%</b> لكل جهة</span></div>
         </section>
         <section class="panel trade-panel" aria-labelledby="trade-panel-title">
-          <div class="panel-heading"><div><p class="eyebrow">إدارة مركز تعليمي</p><h2 id="trade-panel-title">فتح أو إغلاق يدوي</h2></div><span class="tag warn-tag">تجربة فقط</span></div>
-          <p class="body-copy">السعر الحالي من مولّد محلي، والمركز يبقى ورقيًا داخل هذا الجهاز. لا يرسل التطبيق بيانات أو طلبات.</p>
-          <label class="field-label" for="trade-amount">قيمة المركز الافتراضي</label>
-          <div class="input-with-unit"><input id="trade-amount" type="number" inputmode="decimal" min="1" max="10" step="1" value="5" aria-describedby="amount-help"><span>USDT ورقي</span></div>
-          <p class="small-note" id="amount-help">من 1 إلى 10 USDT، وبحدود الرصيد الافتراضي.</p>
+          <div class="panel-heading"><div><p class="eyebrow">حساب محلي على السعر الحقيقي</p><h2 id="trade-panel-title">فتح أو إغلاق يدوي</h2></div><span class="tag warn-tag">ورقي فقط</span></div>
+          <p class="body-copy">سعر الدخول والإغلاق مأخوذ من Binance Spot العام. لا تُرسل أوامر. الرسوم 0.10% والانزلاق 0.05% لكل جهة تقديرات قابلة للاختلاف عن تنفيذ السوق الفعلي.</p>
+          <label class="field-label" for="trade-amount">قيمة المركز الورقي</label>
+          <div class="input-with-unit"><input id="trade-amount" type="number" inputmode="decimal" min="0.01" max="10" step="0.01" value="5.00" aria-describedby="amount-help"><span>USDT ورقي</span></div>
+          <p class="small-note" id="amount-help">من 0.01 USDT حتى سقف المركز، مع منزلتين عشريتين؛ لا يتجاوز الرصيد أو حد المخاطرة.</p>
           <button class="button button-primary button-block" id="open-paper-button" type="button">افتح مركزًا ورقيًا</button>
           <button class="button button-danger button-block" id="close-paper-button" type="button" hidden>أغلق المركز الورقي</button>
           <div class="position-card" id="position-card" hidden></div>
         </section>
-        <div class="notice"><b>تذكير:</b> الإغلاق هنا يحدّث سجلًا محليًا فقط. وقف الخسارة والهدف توضيحيان ولا ينفذان تلقائيًا.</div>
+        <div class="notice"><b>مهم:</b> يراقب التطبيق وقف وهدف المركز الورقي عند التحديث الدوري فقط أثناء فتح التطبيق؛ قد يفوّت حركة تقع بين تحديثين. هذا ليس أمر وقف حقيقيًا.</div>
       </section>
 
       <section class="screen" id="screen-history" data-screen="history" aria-labelledby="history-title" hidden>
-        <div class="screen-heading"><div><p class="eyebrow">كل شيء محفوظ محليًا</p><h1 id="history-title">السجل والنتائج</h1></div><span class="tag synthetic-tag">ورقي</span></div>
+        <div class="screen-heading"><div><p class="eyebrow">محفوظ على هذا الجهاز</p><h1 id="history-title">السجل والنتائج</h1></div><span class="tag real-tag">مصدر السعر: Binance</span></div>
         <section class="panel history-summary">
-          <div class="panel-heading"><div><p class="eyebrow">الحساب الافتراضي</p><h2>ملخص الأداء</h2></div></div>
-          <div class="indicator-grid"><div><span>صافي المحاكاة</span><b class="number-ltr" data-total-pnl>—</b></div><div><span>مراكز مكتملة</span><b data-trade-count>0</b></div><div><span>نسبة الفوز</span><b data-win-rate>—</b></div></div>
+          <div class="panel-heading"><div><p class="eyebrow">الحساب الورقي</p><h2>ملخص الأداء</h2></div></div>
+          <div class="indicator-grid"><div><span>صافي المحاكاة</span><b class="number-ltr" data-total-pnl>—</b></div><div><span>صفقات مكتملة</span><b data-trade-count>0</b></div><div><span>نسبة الفوز</span><b data-win-rate>—</b></div></div>
         </section>
         <section class="history-section" aria-labelledby="history-list-title">
-          <div class="section-title-row"><div><p class="eyebrow">الأحدث أولًا</p><h2 id="history-list-title">حركات المحاكاة</h2></div><span class="small-note" data-history-count>0</span></div>
+          <div class="section-title-row"><div><p class="eyebrow">الأحدث أولًا</p><h2 id="history-list-title">الصفقات الورقية</h2></div><span class="small-note" data-history-count>0</span></div>
           <div id="history-list" class="history-list" aria-live="polite"></div>
-          <div class="empty-state" id="history-empty"><span class="empty-symbol" aria-hidden="true">◷</span><b>لا توجد نتائج بعد</b><p>افتح مركزًا ورقيًا وأغلقه لتظهر التجربة هنا.</p><button class="button button-secondary" data-nav="paper" type="button">ابدأ تجربة محلية</button></div>
+          <div class="empty-state" id="history-empty"><span class="empty-symbol" aria-hidden="true">◷</span><b>لا توجد نتائج بعد</b><p>افتح وأغلق مركزًا ورقيًا بسعر Binance ليظهر هنا.</p><button class="button button-secondary" data-nav="paper" type="button">ابدأ محاكاة ورقية</button></div>
         </section>
-        <section class="panel note-panel"><h2>كيف تُقرأ هذه الأرقام؟</h2><p class="body-copy">النتائج محسوبة على أسعار مصطنعة ورسوم ثابتة افتراضية. لا تمثل الأداء المتوقع في السوق، ولا تتضمن سيولة أو تنفيذًا أو انزلاقًا حقيقيًا.</p></section>
+        <section class="panel note-panel"><h2>كيف تُقرأ الأرقام؟</h2><p class="body-copy">كل الأرقام ورقية. صافي الربح والخسارة يخصم رسومًا وانزلاقًا تقديريين ثابتين؛ لا يملك التطبيق بيانات رسوم حسابك أو دفتر أوامر. النتائج التاريخية لا تضمن الربح مستقبلًا.</p></section>
       </section>
 
       <section class="screen" id="screen-settings" data-screen="settings" aria-labelledby="settings-title" hidden>
-        <div class="screen-heading"><div><p class="eyebrow">تعديلات على الجهاز</p><h1 id="settings-title">الإعدادات والسلامة</h1></div><span class="tag synthetic-tag">دون حسابات</span></div>
+        <div class="screen-heading"><div><p class="eyebrow">تعديلات على الجهاز فقط</p><h1 id="settings-title">الإعدادات والسلامة</h1></div><span class="tag real-tag">قراءة عامة فقط</span></div>
         <section class="panel settings-panel">
-          <div class="panel-heading"><div><p class="eyebrow">المحفظة التعليمية</p><h2>إعدادات المحاكاة</h2></div></div>
+          <div class="panel-heading"><div><p class="eyebrow">المحفظة الورقية</p><h2>إعدادات المحاكاة</h2></div></div>
           <label class="field-label" for="capital-input">رأس المال الافتراضي عند إعادة التعيين</label>
-          <div class="input-with-unit"><input id="capital-input" type="number" inputmode="decimal" min="100" max="1000000" step="100" value="1000"><span>USDT افتراضي</span></div>
+          <div class="input-with-unit"><input id="capital-input" type="number" inputmode="decimal" min="1" max="1000000" step="0.01" value="11.00"><span>USDT افتراضي</span></div>
           <label class="field-label" for="max-trade-input">أقصى قيمة للمركز الورقي</label>
-          <div class="input-with-unit"><input id="max-trade-input" type="number" inputmode="decimal" min="1" max="10" step="1" value="10"><span>USDT افتراضي</span></div>
-          <label class="field-label" for="risk-input">حد المخاطرة التوضيحي</label>
+          <div class="input-with-unit"><input id="max-trade-input" type="number" inputmode="decimal" min="0.01" max="11" step="0.01" value="10.00"><span>USDT افتراضي</span></div>
+          <label class="field-label" for="risk-input">حد المخاطرة التقديري</label>
           <div class="input-with-unit"><input id="risk-input" type="number" inputmode="decimal" min="0.1" max="5" step="0.1" value="1"><span>% من رأس المال</span></div>
           <button class="button button-primary button-block" id="save-settings-button" type="button">حفظ الإعدادات محليًا</button>
-          <p class="small-note">تغيير رأس المال يبدأ محفظة جديدة ويمسح سجل المحاكاة بعد التأكيد.</p>
+          <p class="small-note">الحساب الجديد يبدأ بـ11 USDT. تغيير رأس المال يبدأ حسابًا جديدًا ويمسح سجل المحاكاة بعد التأكيد.</p>
+        </section>
+        <section class="panel settings-panel alert-settings">
+          <div class="panel-heading"><div><p class="eyebrow">اختياري</p><h2>تنبيهات الإغلاق</h2></div></div>
+          <label class="toggle-row"><span><b>صوت تنبيه</b><small>نغمة محلية عند إغلاق مركز ورقي</small></span><input id="sound-toggle" type="checkbox"></label>
+          <label class="toggle-row"><span><b>اهتزاز</b><small>اهتزاز قصير عند إغلاق مركز ورقي</small></span><input id="vibration-toggle" type="checkbox"></label>
+          <p class="small-note">قد تمنع إعدادات الجهاز الصوت أو الاهتزاز؛ لا يؤثر ذلك في السجل أو الأسعار.</p>
         </section>
         <section class="panel privacy-panel">
-          <div class="panel-heading"><div><p class="eyebrow">حدود التطبيق</p><h2>خصوصية وسلامة</h2></div><span class="tag good-tag">محلي</span></div>
-          <ul class="plain-list"><li>لا يطلب مفتاحًا أو كلمة مرور أو حساب تداول.</li><li>لا يملك إذن اتصال بالإنترنت.</li><li>لا يرسل أمر شراء أو بيع، ولا يقرأ رصيد منصة.</li><li>الأسعار والنتائج مولّدة للاختبار التعليمي.</li></ul>
-          <button class="button button-danger button-block" id="reset-button" type="button">مسح بيانات المحاكاة</button>
+          <div class="panel-heading"><div><p class="eyebrow">حدود التطبيق</p><h2>مصدر البيانات والأمان</h2></div><span class="tag good-tag">محاكاة</span></div>
+          <ul class="plain-list"><li>قراءة عامة فقط من Binance Spot عبر HTTPS؛ لا يحتاج التطبيق إلى API key أو حساب.</li><li>لا توجد أوامر شراء أو بيع حقيقية، ولا واجهات حساب أو تحويل أو سحب.</li><li>التحليل والاختبار يستخدمان شموعًا مغلقة؛ تُرفض الشمعة التي لا تزال تتشكل.</li><li>عند انقطاع الاتصال لا تُولّد أسعار بديلة؛ قد تبقى آخر بيانات حقيقية محفوظة مع وسمها بأنها قديمة.</li><li>رسوم وانزلاق الاختبار تقديرية وثابتة وليست رسوم حسابك الفعلية.</li></ul>
+          <button class="button button-danger button-block" id="reset-button" type="button">مسح بيانات المحاكاة الورقية</button>
         </section>
-        <p class="footnote">هذا التطبيق أداة تعلم تجريبية، وليس خدمة مالية أو توصية استثمارية.</p>
+        <p class="footnote">هذا التطبيق مختبر تعليمي، وليس توصية استثمارية أو ضمانًا للربح.</p>
       </section>
     </main>
 
@@ -165,7 +189,7 @@
       <button class="nav-button" type="button" data-nav="settings"><span aria-hidden="true">⚙</span><small>الإعدادات</small></button>
     </nav>
 
-    <footer class="app-footer"><span>DRAK ورقي</span><span>بيانات اصطناعية · بلا إنترنت</span></footer>
+    <footer class="app-footer"><span>DRAK 0.3.0</span><span>Binance Spot عام · أوامر ورقية فقط</span></footer>
   </div>
 
   <div class="modal-backdrop" id="confirm-modal" hidden>
@@ -177,5 +201,6 @@
     </section>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <div id="celebration" class="celebration" aria-hidden="true"></div>
 </body>
 </html>

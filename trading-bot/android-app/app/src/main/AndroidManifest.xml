@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
     <application
         android:allowBackup="false"
         android:usesCleartextTraffic="false"
-        android:label="DRAK ورقي"
+        android:label="DRAK 0.3.0 ورقي"
         android:theme="@android:style/Theme.Material.NoActionBar"
         android:hardwareAccelerated="true">
         <activity
