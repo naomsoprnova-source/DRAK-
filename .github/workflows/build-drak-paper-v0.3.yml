@@ -1,0 +1,96 @@
+name: Build DRAK Paper 0.3.0 APK
+
+on:
+  push:
+    branches: [build/drak-paper-v0.3.0]
+    paths:
+      - 'trading-bot/drak-paper-bundle.b64.part06'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+          cache-provider: basic
+
+      - name: Unpack DRAK Paper 0.3.0 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat trading-bot/drak-paper-bundle.b64.part01 \
+              trading-bot/drak-paper-bundle.b64.part02 \
+              trading-bot/drak-paper-bundle.b64.part03 \
+              trading-bot/drak-paper-bundle.b64.part04 \
+              trading-bot/drak-paper-bundle.b64.part05 \
+              trading-bot/drak-paper-bundle.b64.part06 > /tmp/drak-paper.b64
+          base64 --decode /tmp/drak-paper.b64 > /tmp/drak-paper.zip
+          TARGET='market-observatory/market-radar/full-project/complete-source'
+          mkdir -p "$TARGET"
+          unzip -oq /tmp/drak-paper.zip -d "$TARGET"
+          test -s "$TARGET/paper-web/index.html"
+          test -s "$TARGET/android/app/build.gradle"
+
+      - name: Run JavaScript tests
+        working-directory: market-observatory/market-radar/full-project/complete-source/paper-web
+        run: node --test tests/*.test.js
+
+      - name: Build Android APK
+        working-directory: market-observatory/market-radar/full-project/complete-source/android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon clean assembleDebug
+
+      - name: Verify APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK='market-observatory/market-radar/full-project/complete-source/android/app/build/outputs/apk/debug/app-debug.apk'
+          test -s "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep -E "package: name='com.ans.marketobservatory'|sdkVersion:'23'"
+          sha256sum "$APK" | tee SHA256SUMS.txt
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DRAK-Paper-v0.3.0-Android-9-plus
+          path: |
+            market-observatory/market-radar/full-project/complete-source/android/app/build/outputs/apk/debug/app-debug.apk
+            SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: DRAK-paper-v0.3.0
+          name: DRAK Paper 0.3.0
+          target_commitish: build/drak-paper-v0.3.0
+          make_latest: true
+          overwrite_files: true
+          fail_on_unmatched_files: true
+          body: |
+            DRAK Paper 0.3.0 — debug APK for testing.
+            Android 6.0+ (minSdk 23), including Android 9.
+            Public Binance Spot market data only; no API keys and no real order execution.
+            Default virtual capital: 11 USDT. Paper trading only.
+          files: |
+            market-observatory/market-radar/full-project/complete-source/android/app/build/outputs/apk/debug/app-debug.apk
+            SHA256SUMS.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
