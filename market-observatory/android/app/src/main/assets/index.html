@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1110">
+  <title>مرصد العملات DRAK Paper 0.3.0</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">D</div>
+        <div><strong>مرصد العملات</strong><small>DRAK Paper <span>0.3.0</span></small></div>
+      </div>
+      <div class="paper-tag"><span class="live-dot"></span>محاكاة فقط</div>
+    </header>
+
+    <main id="main-content">
+      <section class="market-strip panel" aria-label="اختيارات السوق">
+        <label class="field"><span>الزوج</span><select id="symbol"><option value="BTCUSDT">BTC / USDT</option><option value="ETHUSDT">ETH / USDT</option><option value="SOLUSDT">SOL / USDT</option></select></label>
+        <label class="field"><span>الإطار</span><select id="interval"><option value="15m">15 دقيقة</option><option value="1h">ساعة</option><option value="4h" selected>4 ساعات</option><option value="1d">يومي</option></select></label>
+        <label class="field"><span>الاستراتيجية</span><select id="strategy"><option value="ema_cross">تقاطع EMA</option><option value="rsi_recovery">تعافي RSI</option><option value="breakout">اختراق 20 شمعة</option></select></label>
+      </section>
+
+      <section id="page-dashboard" class="page active" aria-labelledby="dashboard-title">
+        <div class="welcome-row">
+          <div><p class="eyebrow">بيانات عامة · تداول ورقي محلي</p><h1 id="dashboard-title">مساحة السوق</h1><p class="muted">اقرأ الحركة وجرب أفكارك دون إرسال أوامر إلى منصة تداول.</p></div>
+          <span class="version-chip">PAPER 0.3</span>
+        </div>
+        <section class="panel hero-market">
+          <div class="hero-head"><div><span class="eyebrow" id="market-pair-label">BTC / USDT</span><div id="market-price" class="hero-price">—</div></div><span id="price-change" class="change-pill">بانتظار البيانات</span></div>
+          <div class="chart-box"><svg id="price-chart" viewBox="0 0 360 100" role="img" aria-label="رسم مبسط لأسعار الشموع المغلقة"><path d="M0 80 H360" class="chart-grid"/><text x="180" y="55" text-anchor="middle" class="chart-placeholder">اجلب بيانات السوق لعرض الرسم</text></svg></div>
+          <div class="market-meta"><span id="market-status" role="status">لم تُجلب بيانات بعد</span><span id="last-updated">—</span></div>
+          <button id="load-market" class="button primary full">جلب شموع Binance المكتملة</button>
+        </section>
+        <section class="section-heading"><div><p class="eyebrow">محفظة افتراضية</p><h2>ملخص المحاكاة</h2></div><span class="local-label">محفوظة على الجهاز</span></section>
+        <div class="metric-grid">
+          <article class="metric-card"><span>الرصيد النقدي</span><strong id="cash-value">11.00 USDT</strong><small>رأس مال افتراضي فقط</small></article>
+          <article class="metric-card"><span>النتيجة المحققة</span><strong id="pnl-value">0.00 USDT</strong><small>بعد تكاليف المحاكاة</small></article>
+          <article class="metric-card"><span>صفقات السجل</span><strong id="trade-count">0</strong><small>محفوظة محلياً</small></article>
+        </div>
+        <div class="notice"><span class="notice-icon">i</span><p>الاستراتيجيات أدوات تعليمية؛ نتائجها السابقة لا تضمن نتيجة مستقبلية ولا تمثل توصية مالية.</p></div>
+      </section>
+
+      <section id="page-analysis" class="page" aria-labelledby="analysis-title" hidden>
+        <div class="page-heading"><p class="eyebrow">قراءة فنية تعليمية</p><h1 id="analysis-title">التحليل</h1><p class="muted">المؤشرات مبنية على شموع Binance المغلقة التي تطلبها يدوياً.</p></div>
+        <article id="signal-panel" class="panel signal-panel">
+          <div class="signal-top"><div><span class="eyebrow" id="analysis-strategy-name">الاستراتيجية</span><h2 id="signal-label">اجلب البيانات أولاً</h2></div><span class="signal-icon" aria-hidden="true">↗</span></div>
+          <p id="signal-reason" class="muted">لم يتم حساب إشارة حتى الآن.</p>
+          <p id="strategy-explain" class="strategy-explain">—</p>
+        </article>
+        <section class="section-heading"><div><p class="eyebrow">مستويات توضيحية</p><h2>دخول / هدف / وقف</h2></div></section>
+        <div class="level-grid">
+          <article class="level-card"><span>دخول تقديري</span><strong id="entry-level">—</strong><small>إغلاق آخر شمعة مكتملة</small></article>
+          <article class="level-card target"><span>هدف نظري</span><strong id="target-level">—</strong><small id="target-note">نسبة عائد/مخاطرة 2:1</small></article>
+          <article class="level-card stop"><span>وقف نظري</span><strong id="stop-level">—</strong><small>ليس حداً مضموناً للخسارة</small></article>
+        </div>
+        <div class="metric-grid compact-grid">
+          <article class="metric-card"><span>RSI 14</span><strong id="rsi-value">—</strong></article>
+          <article class="metric-card"><span>ATR 14</span><strong id="atr-value">—</strong></article>
+          <article class="metric-card"><span>كمية ورقية تقديرية</span><strong id="quantity-value">—</strong></article>
+        </div>
+        <article class="panel cost-panel"><div class="section-heading inline"><div><p class="eyebrow">حسابات التكاليف</p><h2>الرسوم والانزلاق</h2></div></div><div class="cost-row"><span>رسوم دخول وخروج تقديرية</span><strong id="fee-estimate">—</strong></div><div class="cost-row"><span>انزلاق سعري تقديري</span><strong id="slippage-estimate">—</strong></div><div class="cost-row"><span>حد المركز</span><strong id="position-limit">5.00 USDT</strong></div><p class="small-note">تقديرات المحاكاة لا تمثل سعراً قابلاً للتنفيذ أو تكلفة فعلية.</p></article>
+        <button class="button secondary full" data-go="simulation">انتقل إلى المحاكاة الورقية</button>
+      </section>
+
+      <section id="page-simulation" class="page" aria-labelledby="simulation-title" hidden>
+        <div class="page-heading"><p class="eyebrow">رصيد تجريبي محلي</p><h1 id="simulation-title">المحاكاة والاختبار</h1><p class="muted">لا يتصل هذا القسم بواجهة أوامر التداول.</p></div>
+        <section class="panel wallet-panel"><div class="wallet-head"><div><span class="eyebrow">الرصيد المتاح</span><strong id="simulation-cash">11.00 USDT</strong></div><span class="paper-badge">PAPER</span></div><div id="open-position-card" class="position-empty">لا يوجد مركز ورقي مفتوح.</div><div class="button-row"><button id="paper-open" class="button primary" disabled>فتح مركز ورقي</button><button id="paper-close" class="button danger" disabled>إغلاق ورقي</button></div><p class="small-note">قيمة كل مركز لا تتجاوز الحد المحدد. الكميات والرسوم تقديرية؛ لا يوجد تنفيذ على Binance.</p></section>
+        <section class="panel backtest-panel"><div class="section-heading inline"><div><p class="eyebrow">بيانات سوق فعلية</p><h2>اختبار تاريخي</h2></div><span class="data-badge">Binance Spot</span></div><p class="muted">يجلب التطبيق شموعاً تاريخية مغلقة عند الضغط، ثم يطبق قواعد المحاكاة والرسوم والانزلاق نفسها.</p><label class="field"><span>عدد الشموع</span><select id="backtest-limit"><option value="100">100 شمعة</option><option value="300">300 شمعة</option><option value="500" selected>500 شمعة</option><option value="1000">1000 شمعة</option></select></label><button id="run-backtest" class="button outline full">جلب البيانات وتشغيل الاختبار</button><div id="backtest-status" class="backtest-result" role="status"><div class="empty-result">لا توجد نتيجة بعد. بيانات الاختبار غير مضمونة الربحية.</div></div><p class="small-note">يبدأ التنفيذ عند افتتاح الشمعة التالية للإشارة. إذا لامست الشمعة الوقف والهدف معاً، يفترض الاختبار تحفظياً أن الوقف حدث أولاً. هذا الاختبار لا يثبت الأداء المستقبلي.</p></section>
+      </section>
+
+      <section id="page-history" class="page" aria-labelledby="history-title" hidden>
+        <div class="page-heading"><p class="eyebrow">سجل الجهاز</p><h1 id="history-title">سجل الصفقات الورقية</h1><p class="muted">السجل محفوظ محلياً ولا يُرسل إلى أي خدمة.</p></div>
+        <div id="history-list" class="history-list"><div class="panel empty-result">لا توجد صفقات ورقية مسجلة.</div></div>
+        <button id="clear-history" class="button danger full" disabled>مسح سجل المحاكاة</button>
+      </section>
+
+      <section id="page-settings" class="page" aria-labelledby="settings-title" hidden>
+        <div class="page-heading"><p class="eyebrow">تفضيلات محلية</p><h1 id="settings-title">الإعدادات</h1><p class="muted">لا تحفظ الإعدادات أي بيانات دخول أو مفاتيح.</p></div>
+        <form id="settings-form" class="panel settings-form">
+          <label class="field"><span>رأس المال الافتراضي (USDT)</span><input id="setting-capital" type="number" min="1" max="1000000" step="0.01" inputmode="decimal" value="11"></label>
+          <label class="field"><span>أقصى قيمة للمركز (USDT)</span><input id="setting-max-position" type="number" min="0.01" max="1000000" step="0.01" inputmode="decimal" value="5"></label>
+          <label class="field"><span>الرسوم لكل جهة (%)</span><input id="setting-fee" type="number" min="0" max="2" step="0.01" inputmode="decimal" value="0.1"></label>
+          <label class="field"><span>الانزلاق التقديري لكل جهة (%)</span><input id="setting-slippage" type="number" min="0" max="2" step="0.01" inputmode="decimal" value="0.05"></label>
+          <label class="toggle-row"><span><strong>أصوات الواجهة</strong><small>نغمة اختيارية عند تغير المحاكاة</small></span><input id="setting-sound" type="checkbox"></label>
+          <label class="toggle-row"><span><strong>احتفال بصري</strong><small>تأثير بسيط بعد صفقة ورقية</small></span><input id="setting-celebrations" type="checkbox"></label>
+          <button class="button primary full" type="submit">حفظ الإعدادات</button>
+        </form>
+        <button id="reset-paper" class="button danger full">إعادة ضبط المحفظة الورقية</button>
+        <div class="notice caveat"><span class="notice-icon">i</span><p>المحفظة والصفقات وإعدادات الصوت والاحتفال بيانات محلية قابلة للمسح بحذف التطبيق أو إعادة ضبطه.</p></div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="التنقل الرئيسي">
+      <button class="nav-item active" data-page="dashboard" aria-current="page"><span aria-hidden="true">⌂</span><small>الرئيسية</small></button>
+      <button class="nav-item" data-page="analysis"><span aria-hidden="true">⌁</span><small>التحليل</small></button>
+      <button class="nav-item" data-page="simulation"><span aria-hidden="true">◉</span><small>المحاكاة</small></button>
+      <button class="nav-item" data-page="history"><span aria-hidden="true">≡</span><small>السجل</small></button>
+      <button class="nav-item" data-page="settings"><span aria-hidden="true">⚙</span><small>الإعدادات</small></button>
+    </nav>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="celebration-layer" class="celebration-layer" aria-hidden="true"></div>
+  <script src="data.js"></script>
+  <script src="engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
